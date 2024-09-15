@@ -7,13 +7,14 @@ apply plugin: 'opensearch.opensearchplugin'
 apply plugin: 'opensearch.yaml-rest-test'
 apply plugin: 'opensearch.pluginzip'
 
-def pluginName = 'rename'
-def pluginDescription = 'Custom plugin'
+def pluginName = 'SycamoreIngest'
+def pluginDescription = 'OpenSearch ingestion processor using Sycamore'
 def projectPath = 'org.opensearch'
-def pathToPlugin = 'path.to.plugin'
-def pluginClassName = 'RenamePlugin'
-group = "RenameGroup"
+def pathToPlugin = 'sycamore.ingest'
+def pluginClassName = 'SycamoreIngestPlugin'
+group = "SycamoreIngest"
 
+/*
 tasks.register("preparePluginPathDirs") {
     mustRunAfter clean
     doLast {
@@ -22,7 +23,7 @@ tasks.register("preparePluginPathDirs") {
         mkdir "src/test/java/org/opensearch/$newPath"
         mkdir "src/yamlRestTest/java/org/opensearch/$newPath"
     }
-}
+}*/
 
 publishing {
     publications {

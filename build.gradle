@@ -56,6 +56,17 @@ opensearchplugin {
     noticeFile rootProject.file('NOTICE.txt')
 }
 
+dependencies {
+    testImplementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
+    implementation group: 'org.json', name: 'json', version: '20231013'
+    implementation("com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2") // ${versions.jackson_databind}")
+
+    implementation("org.openapitools:openapi-java-client:0.1.0")
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1"
+    implementation "org.openapitools:jackson-databind-nullable:0.2.6"
+}
+
 // This requires an additional Jar not published as part of build-tools
 loggerUsageCheck.enabled = false
 

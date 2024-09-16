@@ -7,9 +7,16 @@
  */
 package org.opensearch.sycamore.ingest;
 
+import org.opensearch.ingest.Processor;
+import org.opensearch.plugins.IngestPlugin;
 import org.opensearch.plugins.Plugin;
 
+import java.util.Map;
 
-public class SycamoreIngestPlugin extends Plugin {
+public class SycamoreIngestPlugin extends Plugin implements IngestPlugin {
     // Implement the relevant Plugin Interfaces here
+    @Override
+    public Map<String, Processor.Factory> getProcessors(Processor.Parameters parameters) {
+        return Map.of();
+    }
 }

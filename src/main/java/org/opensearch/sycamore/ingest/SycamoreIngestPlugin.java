@@ -14,9 +14,8 @@ import org.opensearch.plugins.Plugin;
 import java.util.Map;
 
 public class SycamoreIngestPlugin extends Plugin implements IngestPlugin {
-    // Implement the relevant Plugin Interfaces here
     @Override
     public Map<String, Processor.Factory> getProcessors(Processor.Parameters parameters) {
-        return Map.of();
+        return Map.of(SycamoreIngestProcessor.TYPE, new SycamoreIngestProcessorFactory());
     }
 }

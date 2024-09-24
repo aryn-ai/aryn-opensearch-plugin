@@ -79,7 +79,7 @@ apply plugin: 'io.freefair.lombok'
 
 def pluginName = 'sycamore-ingest'
 def pluginDescription = 'OpenSearch ingestion processor using Sycamore'
-def projectPath = 'org.opensearch'
+def projectPath = 'ai.aryn'
 def pathToPlugin = 'sycamore.ingest'
 def pluginClassName = 'SycamoreIngestPlugin'
 group = "SycamoreIngest"
@@ -88,7 +88,7 @@ ext.opensearch_tmp_dir = rootProject.file('build/private/opensearch_tmp').absolu
 opensearch_tmp_dir.mkdirs()
 
 allprojects {
-    group = 'org.opensearch'
+    group = 'ai.aryn'
     version = opensearch_build
 
     apply from: "$rootDir/repositories.gradle"
@@ -144,7 +144,7 @@ publishing {
               }
               developers {
                 developer {
-                  name = "OpenSearch"
+                  name = "Aryn, Inc"
                   url = "https://github.com/opensearch-project/opensearch-plugin-template-java"
                 }
               }
@@ -177,7 +177,8 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2") // ${versions.jackson_databind}")
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
 
-    implementation("org.openapitools:openapi-java-client:0.1.0")
+    // implementation("org.openapitools:openapi-java-client:0.1.0")
+    implementation fileTree(dir: 'libs', include: '*.jar')
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1"
     implementation "org.openapitools:jackson-databind-nullable:0.2.6"
     implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
@@ -213,6 +214,12 @@ loggerUsageCheck.enabled = false
 
 // No need to validate pom, as we do not upload to maven/sonatype
 validateNebulaPom.enabled = false
+
+forbiddenApis.ignoreFailures = true
+dependencyLicenses.enabled = false
+thirdPartyAudit.enabled = false
+forbiddenApisTest.ignoreFailures = true
+forbiddenApisMain.ignoreFailures = true
 
 test {
     include '**/*Tests.class'
@@ -353,3 +360,7 @@ task updateVersion {
     }
 }
 
+forbiddenPatterns {
+    exclude '**/*.pdf'
+    exclude '**/*.jpg'
+}

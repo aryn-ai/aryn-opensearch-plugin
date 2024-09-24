@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aryn
+ * Copyright 2024 Aryn
  * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.opensearch.sycamore.ingest;
+package ai.aryn.sycamore.ingest;
 
 import org.opensearch.ingest.Processor;
 
@@ -38,6 +38,14 @@ public class SycamoreIngestProcessorFactory implements Processor.Factory {
         boolean useOcr = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "use_ocr", false);
         boolean extractImages = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_images", false);
         boolean extractTableStructure = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_table_structure", false);
+
+        // TODO add support for using an LLM to extract more context from images.
+        String modelId;
+        boolean summarize_images;
+        boolean extract_entities;
+
+        // Apply Tika?
+
         return new SycamoreIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing, useOcr, extractImages, extractTableStructure);
     }
 }

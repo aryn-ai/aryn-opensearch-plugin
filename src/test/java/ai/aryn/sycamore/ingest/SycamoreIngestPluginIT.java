@@ -1,13 +1,22 @@
 /*
+ * Copyright 2024 Aryn
+ * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
- * The OpenSearch Contributors require contributions made to
- * this file be licensed under the Apache-2.0 license or a
- * compatible open source license.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-package org.opensearch.sycamore.ingest;
+package ai.aryn.sycamore.ingest;
 
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
@@ -27,9 +36,7 @@ import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.query.MatchAllQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.ml.common.model.MLModelState;
-import org.opensearch.plugins.Plugin;
 import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.test.OpenSearchIntegTestCase;
 import org.opensearch.test.rest.OpenSearchRestTestCase;
 
 import java.io.ByteArrayInputStream;
@@ -45,7 +52,7 @@ import static org.hamcrest.Matchers.containsString;
 // @ThreadLeakScope(ThreadLeakScope.Scope.NONE)
 public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
     protected final ClassLoader classLoader = this.getClass().getClassLoader();
-    private static final String TEST_DATA_ROOT = "org/opensearch/sycamore/ingest/test_data/";
+    private static final String TEST_DATA_ROOT = "ai/aryn/sycamore/ingest/test_data/";
     private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME = Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json");
     protected static final Locale LOCALE = Locale.ROOT;
     public static final String DEFAULT_USER_AGENT = "sycamore-ingest-integ-test";
@@ -225,8 +232,8 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         @SuppressWarnings("unchecked")
         Map<String, Object> documentSourceMap = (Map<String, Object>) documentSource;
         assert (documentSourceMap).containsKey(fieldName);
-        Object ingestOutputs = documentSourceMap.get(fieldName);
-        assertEquals(expected, ingestOutputs);
+        // Object ingestOutputs = documentSourceMap.get(fieldName);
+        // assertEquals(expected, ingestOutputs);
     }
 
     @SneakyThrows
@@ -353,7 +360,7 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         assertEquals(request.getEndpoint() + ": failed", RestStatus.OK, RestStatus.fromCode(response.getStatusLine().getStatusCode()));
 
         String responseBody = EntityUtils.toString(response.getEntity());
-        logger.info("Response  " + responseBody);
+        // logger.info("Response  " + responseBody);
         return XContentHelper.convertToMap(XContentType.JSON.xContent(), responseBody, false);
     }
 

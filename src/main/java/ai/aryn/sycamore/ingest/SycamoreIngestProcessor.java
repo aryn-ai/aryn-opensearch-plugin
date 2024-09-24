@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Aryn
+ * Copyright 2024 Aryn
  * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -15,25 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.opensearch.sycamore.ingest;
+package ai.aryn.sycamore.ingest;
 
-import aryn.partitioner.ApiClient;
-import aryn.partitioner.ApiException;
-import aryn.partitioner.Configuration;
-import aryn.partitioner.api.DefaultApi;
-import aryn.partitioner.auth.HttpBearerAuth;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.opensearch.ResourceNotFoundException;
+import ai.aryn.partitioner.ApiClient;
+import ai.aryn.partitioner.ApiException;
+import ai.aryn.partitioner.Configuration;
+import ai.aryn.partitioner.api.DefaultApi;
+import ai.aryn.partitioner.auth.HttpBearerAuth;
+import lombok.extern.log4j.Log4j2;
 import org.opensearch.ingest.AbstractProcessor;
 import org.opensearch.ingest.IngestDocument;
 import org.opensearch.ingest.IngestDocumentWrapper;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessController;
@@ -42,6 +37,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+@Log4j2
 public class SycamoreIngestProcessor extends AbstractProcessor {
 
     public static final String TYPE = "sycamore_ingest";
@@ -103,10 +99,14 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
             Files.write(tempFile, input);
             File options = getOptionFile(this.useOcr, this.extractImages, this.extractTableStructure);
             List res = partition(tempFile.toFile(), options);
-            String text = joinAllTextRepresentations(res);
-
-            ingestDocument.setFieldValue(this.outputField, text);
+            if (res != null) {
+                String text = joinAllTextRepresentations(res);
+                ingestDocument.setFieldValue(this.outputField, text);
+                ingestDocument.setFieldValue("partitioner_output", res);
+            }
+            options.delete();
         } catch (IOException e) {
+            log.error("Unable to process document: {}", e, e);
             throw new RuntimeException(e);
         } finally {
             if (tempFile != null) {
@@ -122,12 +122,24 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
 
             Object elements = null;
             try {
-                Object result = apiInstance.partitionPdfAsyncV1DocumentPartitionPost(input, USER_AGENT, options);
+                Object result = apiInstance.partition(input, USER_AGENT, options);
                 // System.out.println(result);
-                assert result instanceof Map;
+                if (!(result instanceof Map)) {
+                    log.error("Unexpected response from APS: {}", result.toString());
+                    return null;
+                }
                 elements = ((Map) result).get("elements");
-                assert elements != null;
-                assert elements instanceof List;
+                if (elements == null) {
+                    log.warn("APS response does not contain any elements: {}", result.toString());
+                    return null;
+                }
+                if (!(elements instanceof List)) {
+                    log.error("The elements field in the APS response is not a List!!! {}", elements.toString());
+                    return null;
+                }
+
+                /*
+                 * for debugging
                 for (Object element : ((List) elements)) {
                     assert element instanceof Map;
                     Map map = (Map) element;
@@ -136,9 +148,11 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
                     if (map.containsKey("text_representation")) {
                         System.out.println(map.get("text_representation"));
                     }
-                }
+                }*/
             } catch (ApiException e) {
-                new RuntimeException(e);
+                // TODO add retries
+                log.error("Call to Aryn Partitioner failed: {}", e, e);
+                throw new RuntimeException(e);
             }
 
             return elements;
@@ -148,7 +162,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     }
 
     private File getOptionFile(boolean useOcr, boolean extractImages, boolean extractTableStructure) {
-        String options = String.format("{\"use_ocr\": \"%s\", \"extract_images\": \"%s\", \"extract_table_structure\": \"%s\"}",
+        String options = String.format(Locale.ROOT, "{\"use_ocr\": \"%s\", \"extract_images\": \"%s\", \"extract_table_structure\": \"%s\"}",
                 String.valueOf(useOcr).toLowerCase(Locale.ROOT),
                 String.valueOf(extractImages).toLowerCase(Locale.ROOT),
                 String.valueOf(extractTableStructure).toLowerCase(Locale.ROOT));
@@ -157,6 +171,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
             Files.writeString(tempFile, options);
             return tempFile.toFile();
         } catch (IOException ex) {
+            log.error(ex.getMessage(), ex);
             throw new RuntimeException(ex);
         }
     }
@@ -172,11 +187,13 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         return builder.toString();
     }
 
+    // TODO
     private String getImageDescription(byte[] data) {
         String encoded = Base64.getEncoder().encodeToString(data);
         return null;
     }
 
+    // TODO
     private String getTableDescription(Object table) {
         return null;
     }
@@ -191,6 +208,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         return TYPE;
     }
 
+    // TODO
     static class Element {}
     static class TextElement extends Element {}
     static class ImageElement extends Element {}

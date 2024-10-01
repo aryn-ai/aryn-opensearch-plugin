@@ -181,7 +181,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         for (Object obj : list) {
             Map map = (Map) obj;
             if (map.containsKey("text_representation")) {
-                builder.append((String) map.get("text_representation"));
+                builder.append(String.format(Locale.ROOT, "%s%n", (String) map.get("text_representation")));
             }
         }
         return builder.toString();

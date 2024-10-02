@@ -7,6 +7,7 @@
         "output_field": "extracted",
         "aryn_api_key": "__ARYN_TOKEN__",
         "ignore_missing": true,
+        "threshold": "auto",
         "use_ocr": true,
         "extract_images": true,
         "extract_table_structure": true

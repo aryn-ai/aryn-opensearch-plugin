@@ -22,6 +22,7 @@ import ai.aryn.partitioner.ApiException;
 import ai.aryn.partitioner.Configuration;
 import ai.aryn.partitioner.api.DefaultApi;
 import ai.aryn.partitioner.auth.HttpBearerAuth;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.log4j.Log4j2;
 import org.opensearch.ingest.AbstractProcessor;
 import org.opensearch.ingest.IngestDocument;
@@ -43,10 +44,12 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     public static final String TYPE = "sycamore_ingest";
 
     public static final String USER_AGENT = "SycamoreIngestPlugin_v0.1.0";
-
+    public static final String ARYN_CALL_ID = "x-aryn-call-id";
+    public static final String ARYN_API_VERSION = "x-aryn-api-version";
     private final String inputField;
     private final String outputField;
     private final boolean ignoreMissing;
+    private final String threshold;
     private final boolean useOcr;
     private final boolean extractImages;
     private final boolean extractTableStructure;
@@ -56,12 +59,13 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
 
     protected SycamoreIngestProcessor(String tag, String description,
                                       String inputField, String outputField,
-                                      String apiKey, boolean ignoreMissing,
+                                      String apiKey, boolean ignoreMissing, String threshold,
                                       boolean useOcr, boolean extractImages, boolean extractTableStructure) {
         super(tag, description);
         this.inputField = inputField;
         this.outputField = outputField;
         this.ignoreMissing = ignoreMissing;
+        this.threshold = threshold;
         this.useOcr = useOcr;
         this.extractImages = extractImages;
         this.extractTableStructure = extractTableStructure;
@@ -97,7 +101,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         try {
             tempFile = Files.createTempFile(null, null);
             Files.write(tempFile, input);
-            File options = getOptionFile(this.useOcr, this.extractImages, this.extractTableStructure);
+            File options = getOptionFile(this.threshold, this.useOcr, this.extractImages, this.extractTableStructure);
             List res = partition(tempFile.toFile(), options);
             if (res != null) {
                 String text = joinAllTextRepresentations(res);
@@ -123,11 +127,17 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
             Object elements = null;
             try {
                 Object result = apiInstance.partition(input, USER_AGENT, options);
+                Map<String, List<String>> responseHeaders = this.defaultClient.getResponseHeaders();
+                String arynCallId = responseHeaders.get(ARYN_CALL_ID).get(0);
+                String arynVersion = responseHeaders.get(ARYN_API_VERSION).get(0);
+                log.info("aryn_call_id: {}, aryn_version: {}", arynCallId, arynVersion);
+
                 // System.out.println(result);
                 if (!(result instanceof Map)) {
                     log.error("Unexpected response from APS: {}", result.toString());
                     return null;
                 }
+
                 elements = ((Map) result).get("elements");
                 if (elements == null) {
                     log.warn("APS response does not contain any elements: {}", result.toString());
@@ -161,11 +171,20 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         return list == null ? null : (List) list;
     }
 
-    private File getOptionFile(boolean useOcr, boolean extractImages, boolean extractTableStructure) {
-        String options = String.format(Locale.ROOT, "{\"use_ocr\": \"%s\", \"extract_images\": \"%s\", \"extract_table_structure\": \"%s\"}",
+    @VisibleForTesting
+    File getOptionFile(String threshold, boolean useOcr, boolean extractImages, boolean extractTableStructure) {
+        String options = threshold.equals("auto") ? String.format(Locale.ROOT,
+                "{\"threshold\": \"%s\", \"use_ocr\": \"%s\", \"extract_images\": \"%s\", \"extract_table_structure\": \"%s\"}",
+                threshold,
                 String.valueOf(useOcr).toLowerCase(Locale.ROOT),
                 String.valueOf(extractImages).toLowerCase(Locale.ROOT),
-                String.valueOf(extractTableStructure).toLowerCase(Locale.ROOT));
+                String.valueOf(extractTableStructure).toLowerCase(Locale.ROOT))
+                : String.format(Locale.ROOT,
+                        "{\"threshold\": %.3f, \"use_ocr\": \"%s\", \"extract_images\": \"%s\", \"extract_table_structure\": \"%s\"}",
+                        Double.valueOf(threshold),
+                        String.valueOf(useOcr).toLowerCase(Locale.ROOT),
+                        String.valueOf(extractImages).toLowerCase(Locale.ROOT),
+                        String.valueOf(extractTableStructure).toLowerCase(Locale.ROOT));
         try {
             Path tempFile = Files.createTempFile(null, null);
             Files.writeString(tempFile, options);

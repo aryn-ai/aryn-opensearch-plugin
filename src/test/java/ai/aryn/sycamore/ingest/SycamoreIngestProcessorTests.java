@@ -17,10 +17,50 @@
  */
 package ai.aryn.sycamore.ingest;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import org.junit.Ignore;
+import org.opensearch.ingest.IngestDocument;
 import org.opensearch.test.OpenSearchTestCase;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.is;
 
 public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
     public void testCallAPS() throws Exception {
+    }
+
+    public void testGetOptionFile() throws Exception {
+        String threshold = "0.01";
+        SycamoreIngestProcessor processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
+        File actual = processor.getOptionFile(threshold, false, false, false);
+        String fileContent = Files.readString(actual.toPath());
+        Gson gson = new GsonBuilder().create();
+        JsonObject json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
+        assertThat(json.get("threshold").getAsDouble(), is(Double.parseDouble(threshold)));
+
+        threshold  = "auto";
+        processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
+        actual = processor.getOptionFile(threshold, false, false, false);
+        fileContent = Files.readString(actual.toPath());
+        gson = new GsonBuilder().create();
+        json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
+        assertThat(json.get("threshold").getAsString(), is(threshold));
+    }
+
+    @Ignore
+    public void testExecute() throws Exception {
+        String threshold = "0.01";
+        String key = System.getenv("ARYN_TOKEN");
+        SycamoreIngestProcessor processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", key, false, threshold, false, false, false);
+
+        IngestDocument doc = new IngestDocument("test-index", null, null, null, null, Map.of("input", "foo"));
+        IngestDocument output = processor.execute(doc);
     }
 
 }

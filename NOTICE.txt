@@ -1,2 +1,1 @@
-OpenSearch (https://opensearch.org/)
-Copyright OpenSearch Contributors
+This is an OpenSearch plugin for ingestion that uses software and services developed by Aryn, inc.

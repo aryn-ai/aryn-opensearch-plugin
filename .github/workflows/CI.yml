@@ -8,6 +8,9 @@ on:
     branches:
       - "*"
 
+env:
+  ARYN_TOKEN: ${{ secrets.ARYN_TEST_API_KEY }}
+
 jobs:
   build:
     strategy:
@@ -27,6 +30,11 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
         distribution: temurin
+    - name: Configure AWS Credentials via OIDC provider.
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: us-east-1
+        role-to-assume: arn:aws:iam::237550789389:role/managed-service-github-integ
     - name: Build and Run Tests
       run: |
         ./gradlew build

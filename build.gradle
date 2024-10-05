@@ -1,19 +1,125 @@
+import org.opensearch.gradle.VersionProperties
 import org.opensearch.gradle.test.RestIntegTestTask
 
+import java.util.concurrent.Callable
+
+buildscript {
+    ext {
+        opensearch_version = System.getProperty("opensearch.version", "3.0.0-SNAPSHOT")
+        buildVersionQualifier = System.getProperty("build.version_qualifier", "")
+        isSnapshot = "true" == System.getProperty("build.snapshot", "true")
+        version_tokens = opensearch_version.tokenize('-')
+        opensearch_build = version_tokens[0] + '.0'
+        plugin_no_snapshot = opensearch_build
+        if (buildVersionQualifier) {
+            opensearch_build += "-${buildVersionQualifier}"
+            plugin_no_snapshot += "-${buildVersionQualifier}"
+        }
+        if (isSnapshot) {
+            opensearch_build += "-SNAPSHOT"
+        }
+        opensearch_group = "org.opensearch"
+        opensearch_no_snapshot = opensearch_build.replace("-SNAPSHOT","")
+
+        common_utils_version = System.getProperty("common_utils.version", opensearch_build)
+    }
+
+    repositories {
+        mavenLocal()
+        maven { url "https://aws.oss.sonatype.org/content/repositories/snapshots" }
+        mavenCentral()
+        maven {url "https://oss.sonatype.org/content/repositories/snapshots/"}
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath "${opensearch_group}.gradle:build-tools:${opensearch_version}"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:6.25.0"
+        classpath "io.freefair.gradle:lombok-plugin:8.4"
+
+        configurations.all {
+            resolutionStrategy {
+                force("org.eclipse.platform:org.eclipse.core.runtime:4.29.0") // CVE for < 4.29
+                force("org.eclipse.platform:org.eclipse.core.resources:4.20.0") // CVE for < 4.20
+
+                /*
+                    force 'org.apache.commons:commons-lang3:3.10'
+                    force 'commons-logging:commons-logging:1.2'
+                    force 'org.objenesis:objenesis:3.2'
+                    force 'net.java.dev.jna:jna:5.11.0'
+                    force 'org.apache.commons:commons-text:1.10.0'
+                    force 'com.google.protobuf:protobuf-java:3.21.9'
+                    force 'org.apache.httpcomponents:httpcore:4.4.15'
+                    force 'org.apache.httpcomponents:httpclient:4.5.14'
+                    force 'commons-codec:commons-codec:1.15'
+                    force 'org.slf4j:slf4j-api:1.7.36'
+                    force 'org.codehaus.plexus:plexus-utils:3.3.0'
+
+                 */
+                    // exclude group: "org.jetbrains", module: "annotations"
+            }
+        }
+    }
+
+    //dependencies {
+    //    classpath "org.opensearch.gradle:build-tools:${opensearch_version}"
+    //}
+}
+
 apply plugin: 'java'
+apply plugin: 'java-test-fixtures'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'opensearch.opensearchplugin'
 apply plugin: 'opensearch.yaml-rest-test'
 apply plugin: 'opensearch.pluginzip'
+apply plugin: 'jacoco'
+apply plugin: "com.diffplug.spotless"
+apply plugin: 'io.freefair.lombok'
 
-def pluginName = 'rename'
-def pluginDescription = 'Custom plugin'
-def projectPath = 'org.opensearch'
-def pathToPlugin = 'path.to.plugin'
-def pluginClassName = 'RenamePlugin'
-group = "RenameGroup"
+def pluginName = 'sycamore-ingest'
+def pluginDescription = 'OpenSearch ingestion processor using Sycamore'
+def projectPath = 'ai.aryn'
+def pathToPlugin = 'sycamore.ingest'
+def pluginClassName = 'SycamoreIngestPlugin'
+group = "SycamoreIngest"
 
+ext.opensearch_tmp_dir = rootProject.file('build/private/opensearch_tmp').absoluteFile
+opensearch_tmp_dir.mkdirs()
+
+allprojects {
+    group = 'ai.aryn'
+    version = opensearch_build
+
+    apply from: "$rootDir/repositories.gradle"
+
+    plugins.withId('java') {
+        sourceCompatibility = JavaVersion.VERSION_21;
+        targetCompatibility = JavaVersion.VERSION_21;
+    }
+
+    plugins.withId('jacoco') {
+        jacoco.toolVersion = '0.8.10'
+    }
+
+    project.getExtensions().getExtraProperties().set("versions", VersionProperties.getVersions());
+
+}
+
+configurations {
+    zipArchive
+    // secureIntegTestPluginArchive
+}
+
+/*
+repositories {
+    mavenLocal()
+    maven { url "https://aws.oss.sonatype.org/content/repositories/snapshots" }
+    mavenCentral()
+    maven { url "https://plugins.gradle.org/m1/" }
+}*/
+
+/*
 tasks.register("preparePluginPathDirs") {
     mustRunAfter clean
     doLast {
@@ -22,7 +128,7 @@ tasks.register("preparePluginPathDirs") {
         mkdir "src/test/java/org/opensearch/$newPath"
         mkdir "src/yamlRestTest/java/org/opensearch/$newPath"
     }
-}
+}*/
 
 publishing {
     publications {
@@ -38,7 +144,7 @@ publishing {
               }
               developers {
                 developer {
-                  name = "OpenSearch"
+                  name = "Aryn, Inc"
                   url = "https://github.com/opensearch-project/opensearch-plugin-template-java"
                 }
               }
@@ -53,6 +159,54 @@ opensearchplugin {
     classname "${projectPath}.${pathToPlugin}.${pluginClassName}"
     licenseFile rootProject.file('LICENSE.txt')
     noticeFile rootProject.file('NOTICE.txt')
+    // extendedPlugins = ['opensearch-ml-plugin']
+}
+
+def mlJarDirectory = "$buildDir/dependencies/opensearch-ml"
+
+dependencies {
+    // api group: 'org.opensearch', name:'opensearch-ml', version: "${opensearch_build}"
+    zipArchive group: 'org.opensearch.plugin', name:'opensearch-ml-plugin', version: "${opensearch_build}"
+    compileOnly fileTree(dir: mlJarDirectory, include: "opensearch-ml-${opensearch_build}.jar")
+    compileOnly fileTree(dir: mlJarDirectory, include: "opensearch-ml-search-processors-${opensearch_build}.jar")
+    compileOnly fileTree(dir: mlJarDirectory, include: "opensearch-ml-common-${opensearch_build}.jar")
+    // implementation "org.opensearch:common-utils:${common_utils_version}"
+    testImplementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
+    implementation group: 'org.json', name: 'json', version: '20231013'
+    implementation("com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2") // ${versions.jackson_databind}")
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+
+    // implementation("org.openapitools:openapi-java-client:0.1.0")
+    implementation fileTree(dir: 'libs', include: '*.jar')
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1"
+    implementation "org.openapitools:jackson-databind-nullable:0.2.6"
+    implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
+    // implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    implementation group: 'org.apache.httpcomponents.core5', name: 'httpcore5', version: "${versions.httpcore5}"
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
+    implementation "org.apache.logging.log4j:log4j-slf4j-impl:2.19.0"
+    implementation "org.opensearch.client:opensearch-rest-client:${opensearch_version}"
+}
+
+task extractMLJar(type: Copy) {
+    mustRunAfter()
+    from(zipTree(configurations.zipArchive.find { it.name.startsWith("opensearch-ml")}))
+    into mlJarDirectory
+}
+
+project.tasks.delombok.dependsOn(extractMLJar)
+
+compileJava {
+    dependsOn extractMLJar
+    dependsOn spotlessApply
+    options.compilerArgs.addAll(["-processor", 'lombok.launch.AnnotationProcessorHider$AnnotationProcessor'])
+}
+
+compileTestJava {
+    dependsOn extractMLJar
+    options.compilerArgs.addAll(["-processor", 'lombok.launch.AnnotationProcessorHider$AnnotationProcessor'])
 }
 
 // This requires an additional Jar not published as part of build-tools
@@ -61,29 +215,11 @@ loggerUsageCheck.enabled = false
 // No need to validate pom, as we do not upload to maven/sonatype
 validateNebulaPom.enabled = false
 
-buildscript {
-    ext {
-        opensearch_version = System.getProperty("opensearch.version", "3.0.0-SNAPSHOT")
-    }
-
-    repositories {
-        mavenLocal()
-        maven { url "https://aws.oss.sonatype.org/content/repositories/snapshots" }
-        mavenCentral()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-
-    dependencies {
-        classpath "org.opensearch.gradle:build-tools:${opensearch_version}"
-    }
-}
-
-repositories {
-    mavenLocal()
-    maven { url "https://aws.oss.sonatype.org/content/repositories/snapshots" }
-    mavenCentral()
-    maven { url "https://plugins.gradle.org/m2/" }
-}
+forbiddenApis.ignoreFailures = true
+dependencyLicenses.enabled = false
+thirdPartyAudit.enabled = false
+forbiddenApisTest.ignoreFailures = true
+forbiddenApisMain.ignoreFailures = true
 
 test {
     include '**/*Tests.class'
@@ -96,7 +232,41 @@ task integTest(type: RestIntegTestTask) {
 }
 tasks.named("check").configure { dependsOn(integTest) }
 
+def _numNodes = findProperty('numNodes') as Integer ?: 1
+
 integTest {
+    systemProperty 'tests.security.manager', 'false'
+    systemProperty 'java.io.tmpdir', opensearch_tmp_dir.absolutePath
+    // allows integration test classes to access test resource from project root path
+    systemProperty('project.root', project.rootDir.absolutePath)
+    systemProperty 'security.enabled', System.getProperty('security.enabled')
+    var is_https = System.getProperty("https")
+    var user = System.getProperty("user")
+    var password = System.getProperty("password")
+    if (System.getProperty("security.enabled") != null) {
+        // If security is enabled, set is_https/user/password defaults
+        is_https = is_https == null ? "true" : is_https
+        user = user == null ? "admin" : user
+        password = password == null ? "admin" : password
+    }
+    systemProperty("https", is_https)
+    systemProperty("user", user)
+    systemProperty("password", password)
+
+    doFirst {
+        // Tell the test JVM if the cluster JVM is running under a debugger so that tests can
+        // use longer timeouts for requests.
+        def isDebuggingCluster = getDebug() || System.getProperty("test.debug") != null
+        systemProperty 'cluster.debug', isDebuggingCluster
+        // Set number of nodes system property to be used in tests
+        systemProperty 'cluster.number_of_nodes', "${_numNodes}"
+        // There seems to be an issue when running multi node run or integ tasks with unicast_hosts
+        // not being written, the waitForAllConditions ensures it's written
+        getClusters().forEach { cluster ->
+            cluster.waitForAllConditions()
+        }
+    }
+
     // The --debug-jvm command-line option makes the cluster debuggable; this makes the tests debuggable
     if (System.getProperty("test.debug") != null) {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005'
@@ -104,15 +274,80 @@ integTest {
 }
 
 testClusters.integTest {
-    testDistribution = "INTEG_TEST"
+    testDistribution = "ARCHIVE"  // "INTEG_TEST"
+
+    // Install K-NN/ml-commons plugins on the integTest cluster nodes except security
+    configurations.zipArchive.asFileTree.each {
+        plugin(provider(new Callable<RegularFile>() {
+            @Override
+            RegularFile call() throws Exception {
+                return new RegularFile() {
+                    @Override
+                    File getAsFile() {
+                        return it
+                    }
+                }
+            }
+        }))
+    }
 
     // This installs our plugin into the testClusters
     plugin(project.tasks.bundlePlugin.archiveFile)
+
+    if (System.getProperty("cluster.debug") != null) {
+        def debugPort = 5005
+        nodes.forEach { node ->
+            node.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=${debugPort}")
+            debugPort += 1
+        }
+    }
+
+    // Increase heap size from default of 512mb to 1gb. When heap size is 512mb, our integ tests sporadically fail due
+    // to ml-commons memory circuit breaker exception
+    jvmArgs("-Xms1g", "-Xmx2g")
+
+    nodes.each { node ->
+        def plugins = node.plugins
+        def firstPlugin = plugins.get(0)
+        plugins.remove(0)
+        plugins.add(firstPlugin)
+    }
+}
+
+
+// Remote Integration Tests
+task integTestRemote(type: RestIntegTestTask) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    systemProperty "https", System.getProperty("https")
+    systemProperty "user", System.getProperty("user")
+    systemProperty "password", System.getProperty("password")
+
+    systemProperty 'cluster.number_of_nodes', "${_numNodes}"
+
+    systemProperty 'tests.security.manager', 'false'
+
+    // Run tests with remote cluster only if rest case is defined
+    if (System.getProperty("tests.rest.cluster") != null) {
+        filter {
+            includeTestsMatching "org.opensearch.neuralsearch.*IT"
+        }
+    }
 }
 
 run {
+    doFirst {
+        // There seems to be an issue when running multi node run or integ tasks with unicast_hosts
+        // not being written, the waitForAllConditions ensures it's written
+        getClusters().forEach { cluster ->
+            cluster.waitForAllConditions()
+        }
+    }
+
     useCluster testClusters.integTest
 }
+
 
 // updateVersion: Task to auto update version to the next development iteration
 task updateVersion {
@@ -125,3 +360,7 @@ task updateVersion {
     }
 }
 
+forbiddenPatterns {
+    exclude '**/*.pdf'
+    exclude '**/*.jpg'
+}

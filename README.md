@@ -12,6 +12,7 @@ the default document partitioner used by Sycamore, to parse and extract text, im
 
 ## Releases
 
-| OpenSearch  | Plugin    | Release date    |
-|-------------|-----------|-----------------|
-| 2.17.0      | 2.17.0.0  | October 5, 2024 | 
+| OpenSearch | Plugin     | Release date    |
+|------------|------------|-----------------|
+| 2.17.1     | 2.17.1.0   | October 6, 2024 | 
+| 2.17.0     | 2.17.0.0   | October 5, 2024 |

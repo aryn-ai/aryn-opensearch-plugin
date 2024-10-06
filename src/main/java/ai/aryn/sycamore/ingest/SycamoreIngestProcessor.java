@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.log4j.Log4j2;
 import org.opensearch.ingest.AbstractProcessor;
 import org.opensearch.ingest.IngestDocument;
-import org.opensearch.ingest.IngestDocumentWrapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -215,11 +214,6 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     // TODO
     private String getTableDescription(Object table) {
         return null;
-    }
-
-    @Override
-    public void batchExecute(List<IngestDocumentWrapper> ingestDocumentWrappers, Consumer<List<IngestDocumentWrapper>> handler) {
-        super.batchExecute(ingestDocumentWrappers, handler);
     }
 
     @Override

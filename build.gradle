@@ -5,7 +5,7 @@ import java.util.concurrent.Callable
 
 buildscript {
     ext {
-        opensearch_version = System.getProperty("opensearch.version", "2.17.0-SNAPSHOT")
+        opensearch_version = System.getProperty("opensearch.version", "2.17.1-SNAPSHOT")
         buildVersionQualifier = System.getProperty("build.version_qualifier", "")
         isSnapshot = "true" == System.getProperty("build.snapshot", "true")
         version_tokens = opensearch_version.tokenize('-')
@@ -167,9 +167,9 @@ def mlJarDirectory = "$buildDir/dependencies/opensearch-ml"
 dependencies {
     // api group: 'org.opensearch', name:'opensearch-ml', version: "${opensearch_build}"
     zipArchive group: 'org.opensearch.plugin', name:'opensearch-ml-plugin', version: "${opensearch_build}"
-    compileOnly fileTree(dir: mlJarDirectory, include: "opensearch-ml-${opensearch_build}.jar")
-    compileOnly fileTree(dir: mlJarDirectory, include: "opensearch-ml-search-processors-${opensearch_build}.jar")
-    compileOnly fileTree(dir: mlJarDirectory, include: "opensearch-ml-common-${opensearch_build}.jar")
+    testImplementation fileTree(dir: mlJarDirectory, include: "opensearch-ml-${opensearch_build}.jar")
+    testImplementation fileTree(dir: mlJarDirectory, include: "opensearch-ml-search-processors-${opensearch_build}.jar")
+    testImplementation fileTree(dir: mlJarDirectory, include: "opensearch-ml-common-${opensearch_build}.jar")
     // implementation "org.opensearch:common-utils:${common_utils_version}"
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
     implementation group: 'org.json', name: 'json', version: '20231013'

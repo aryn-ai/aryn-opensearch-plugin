@@ -5,7 +5,7 @@ import java.util.concurrent.Callable
 
 buildscript {
     ext {
-        opensearch_version = System.getProperty("opensearch.version", "2.17.1-SNAPSHOT")
+        opensearch_version = System.getProperty("opensearch.version", "2.12.0-SNAPSHOT")
         buildVersionQualifier = System.getProperty("build.version_qualifier", "")
         isSnapshot = "true" == System.getProperty("build.snapshot", "true")
         version_tokens = opensearch_version.tokenize('-')
@@ -173,8 +173,8 @@ dependencies {
     // implementation "org.opensearch:common-utils:${common_utils_version}"
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
     implementation group: 'org.json', name: 'json', version: '20231013'
-    implementation("com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2") // ${versions.jackson_databind}")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.16.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1") // ${versions.jackson_databind}")
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
 
     // implementation("org.openapitools:openapi-java-client:0.1.0")

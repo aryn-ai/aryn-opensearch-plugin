@@ -62,6 +62,8 @@ file_data = $(base64 -w 0 <file>)
 curl -X PUT -H "Content-type:application/json" --data '{"data","$file_data"}' localhost:9200/example-index/_doc/1?pipeline=sycamore
 ```
 
+For large PDFs, use `ingest-large-doc.sh` in the `scripts` folder.
+
 ### Search
 ```
 curl -X GET -H "Content-type:application/json" localhost:9200/example-index/_search

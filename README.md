@@ -88,4 +88,9 @@ The explanation of this output is documented here: https://sycamore.readthedocs.
 | OpenSearch | Plugin     | Release date    |
 |------------|------------|-----------------|
 | 2.17.1     | 2.17.1.0   | October 6, 2024 | 
-| 2.17.0     | 2.17.0.0   | October 5, 2024 |
+| 2.17.0     | 2.17.0.0   | October 6, 2024 |
+| 2.16.0     | 2.16.0.0   | October 6, 2024 |
+| 2.15.0     | 2.15.0.0   | October 6, 2024 |
+| 2.14.0     | 2.14.0.0   | October 6, 2024 |
+| 2.13.0     | 2.13.0.0   | October 6, 2024 |
+| 2.12.0     | 2.12.0.0   | October 6, 2024 |

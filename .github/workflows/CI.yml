@@ -37,6 +37,8 @@ jobs:
       env:
         ARYN_TOKEN: ${{ secrets.ARYN_TEST_API_KEY }}
       run: |
+        export ARYN_TOKEN=$ARYN_TOKEN
+        echo "::add-mask::$ARYN_TOKEN"
         ./gradlew build
     - name: Publish plugin ZIP to staging repository
       run: |

@@ -175,7 +175,7 @@ dependencies {
     implementation group: 'org.json', name: 'json', version: '20231013'
     implementation("com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2") // ${versions.jackson_databind}")
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
 
     // implementation("org.openapitools:openapi-java-client:0.1.0")
     implementation fileTree(dir: 'libs', include: '*.jar')

@@ -37,16 +37,21 @@ public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
 
     public void testGetOptionFile() throws Exception {
         String threshold = "0.01";
-        SycamoreIngestProcessor processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
-        File actual = processor.getOptionFile(threshold, false, false, false);
+        SycamoreIngestProcessor processor = new SycamoreIngestProcessor(
+                "tag", "desc", "input", "output",
+                "apiKey", false, threshold, false,
+                false, false, false);
+        File actual = processor.getOptionFile(threshold, false, false, false, false);
         String fileContent = Files.readString(actual.toPath());
         Gson gson = new GsonBuilder().create();
         JsonObject json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
         assertThat(json.get("threshold").getAsDouble(), is(Double.parseDouble(threshold)));
 
-        threshold  = "auto";
-        processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
-        actual = processor.getOptionFile(threshold, false, false, false);
+        threshold = "auto";
+        processor = new SycamoreIngestProcessor(
+                "tag", "desc", "input", "output", "apiKey", false,
+                threshold, false, false, false, false);
+        actual = processor.getOptionFile(threshold, false, false, false, false);
         fileContent = Files.readString(actual.toPath());
         gson = new GsonBuilder().create();
         json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
@@ -57,7 +62,9 @@ public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
     public void testExecute() throws Exception {
         String threshold = "0.01";
         String key = System.getenv("ARYN_TOKEN");
-        SycamoreIngestProcessor processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", key, false, threshold, false, false, false);
+        SycamoreIngestProcessor processor = new SycamoreIngestProcessor(
+                "tag", "desc", "input", "output", key, false,
+                threshold, false, false, false, false);
 
         IngestDocument doc = new IngestDocument("test-index", null, null, null, null, Map.of("input", "foo"));
         IngestDocument output = processor.execute(doc);

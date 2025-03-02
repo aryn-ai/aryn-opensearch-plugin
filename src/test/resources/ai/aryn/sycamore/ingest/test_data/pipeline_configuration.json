@@ -5,12 +5,13 @@
       "sycamore_ingest": {
         "input_field": "data",
         "output_field": "extracted",
-        "aryn_api_key": "__ARYN_TOKEN__",
+        "aryn_api_key": "__ARYN_API_KEY__",
         "ignore_missing": true,
         "threshold": "auto",
         "use_ocr": true,
         "extract_images": true,
-        "extract_table_structure": true
+        "extract_table_structure": true,
+        "summarize_images": true
       }
     }
   ]

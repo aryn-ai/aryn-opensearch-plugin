@@ -17,11 +17,11 @@
  */
 package ai.aryn.sycamore.ingest;
 
-import ai.aryn.partitioner.ApiClient;
-import ai.aryn.partitioner.ApiException;
-import ai.aryn.partitioner.Configuration;
-import ai.aryn.partitioner.api.DefaultApi;
-import ai.aryn.partitioner.auth.HttpBearerAuth;
+import ai.aryn.docparse.ApiClient;
+import ai.aryn.docparse.ApiException;
+import ai.aryn.docparse.Configuration;
+import ai.aryn.docparse.api.DefaultApi;
+import ai.aryn.docparse.auth.HttpBearerAuth;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.log4j.Log4j2;
 import org.opensearch.ingest.AbstractProcessor;
@@ -129,7 +129,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
 
             Object elements = null;
             try {
-                Object result = apiInstance.partition(input, USER_AGENT, options);
+                Object result = apiInstance.partition(USER_AGENT, input, options);
                 Map<String, List<String>> responseHeaders = this.defaultClient.getResponseHeaders();
                 String arynCallId = responseHeaders.get(ARYN_CALL_ID).get(0);
                 String arynVersion = responseHeaders.get(ARYN_API_VERSION).get(0);

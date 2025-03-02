@@ -85,11 +85,15 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         try {
             tempFile = Files.createTempFile(null, null);
             Files.write(tempFile, input);
-            File options = getOptionFile(); // this.threshold, this.useOcr, this.extractImages, this.extractTableStructure, this.summarizeImages);
+            File options = getOptionFile();
             List res = partition(tempFile.toFile(), options);
             if (res != null) {
-                String text = joinAllTextRepresentations(res);
-                ingestDocument.setFieldValue(this.options.getOutput_field(), text);
+                String outputField = this.options.getOutput_field();
+                if (this.options.chunking_options != null) {
+                    ingestDocument.setFieldValue(outputField, getTextChunks(res));
+                } else {
+                    ingestDocument.setFieldValue(outputField, joinAllTextRepresentations(res));
+                }
                 ingestDocument.setFieldValue("partitioner_output", res);
             }
             options.delete();
@@ -172,10 +176,22 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         for (Object obj : list) {
             Map map = (Map) obj;
             if (map.containsKey("text_representation")) {
-                builder.append(String.format(Locale.ROOT, "%s%n", (String) map.get("text_representation")));
+                builder.append(map.get("text_representation"));
+                builder.append(System.lineSeparator());
             }
         }
         return builder.toString();
+    }
+
+    private List<String> getTextChunks(List list) {
+        List<String> chunks = new ArrayList<>();
+        for (Object obj : list) {
+            Map map = (Map) obj;
+            if (map.containsKey("text_representation")) {
+                chunks.add((String) map.get("text_representation"));
+            }
+        }
+        return chunks;
     }
 
     // TODO

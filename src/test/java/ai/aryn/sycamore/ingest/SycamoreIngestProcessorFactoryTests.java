@@ -50,7 +50,7 @@ public class SycamoreIngestProcessorFactoryTests extends OpenSearchTestCase {
         config.put("threshold", threshold);
         SycamoreIngestProcessorFactory factory = new SycamoreIngestProcessorFactory();
         SycamoreIngestProcessor processor = (SycamoreIngestProcessor) factory.create(Collections.emptyMap(), "tag", "desc", config);
-        File actual = processor.getOptionFile(String.valueOf(threshold), false, false, false);
+        File actual = processor.getOptionFile(String.valueOf(threshold), false, false, false, false);
         String fileContent = Files.readString(actual.toPath());
         Gson gson = new GsonBuilder().create();
         JsonObject json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();

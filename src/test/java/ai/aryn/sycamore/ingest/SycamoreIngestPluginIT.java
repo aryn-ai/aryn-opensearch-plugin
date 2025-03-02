@@ -104,8 +104,8 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         URL pipelineURLPath = classLoader.getResource(PIPELINE_CONFIGS_BY_NAME.get(pipelineName));
         Objects.requireNonNull(pipelineURLPath);
         String requestBody = Files.readString(Path.of(pipelineURLPath.toURI()));
-        String arynApiKey = System.getenv("ARYN_TOKEN");
-        requestBody = requestBody.replaceAll("__ARYN_TOKEN__", arynApiKey);
+        String arynApiKey = System.getenv("ARYN_API_KEY");
+        requestBody = requestBody.replaceAll("__ARYN_API_KEY__", arynApiKey);
         createPipelineProcessor(requestBody, pipelineName, "", null);
     }
 

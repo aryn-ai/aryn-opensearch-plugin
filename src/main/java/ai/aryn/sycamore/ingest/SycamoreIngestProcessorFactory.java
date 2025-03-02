@@ -39,16 +39,12 @@ public class SycamoreIngestProcessorFactory implements Processor.Factory {
         boolean useOcr = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "use_ocr", false);
         boolean extractImages = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_images", false);
         boolean extractTableStructure = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_table_structure", false);
-
-        // TODO add support for using an LLM to extract more context from images.
-        String modelId;
-        boolean summarize_images;
-        boolean extract_entities;
+        boolean summarizeImages = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "summarize_images", false);
 
         // Apply Tika?
 
         return new SycamoreIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing,
-                threshold, useOcr, extractImages, extractTableStructure);
+                threshold, useOcr, extractImages, extractTableStructure, summarizeImages);
     }
 
     static String readStringOrDoubleProperty(String processorType, String processorTag, Map<String, Object> configuration, String propertyName, String defaultValue) {

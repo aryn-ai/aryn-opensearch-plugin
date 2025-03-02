@@ -11,7 +11,17 @@
         "use_ocr": true,
         "extract_images": true,
         "extract_table_structure": true,
-        "summarize_images": true
+        "summarize_images": true,
+        "ocr_language": "english",
+        "chunking_options": {
+          "strategy": "maximize_within_limit",
+          "tokenizer": "openai_tokenizer",
+          "tokenizer_options": {
+            "model_name": "text-embedding-3-small"
+          },
+          "merge_across_pages": true,
+          "max_tokens": 512
+        }
       }
     }
   ]

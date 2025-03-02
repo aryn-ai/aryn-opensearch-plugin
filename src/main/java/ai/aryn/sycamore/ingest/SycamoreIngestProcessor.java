@@ -46,38 +46,19 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     public static final String USER_AGENT = "SycamoreIngestPlugin_v0.1.0";
     public static final String ARYN_CALL_ID = "x-aryn-call-id";
     public static final String ARYN_API_VERSION = "x-aryn-api-version";
-    private final String inputField;
-    private final String outputField;
-    private final boolean ignoreMissing;
-    private final String threshold;
-    private final boolean useOcr;
-    private final boolean extractImages;
-    private final boolean extractTableStructure;
-    private final boolean summarizeImages;
 
+    private final DocParseOptions options;
     final ApiClient defaultClient = Configuration.getDefaultApiClient();
     final DefaultApi apiInstance;
 
-    protected SycamoreIngestProcessor(String tag, String description,
-                                      String inputField, String outputField,
-                                      String apiKey, boolean ignoreMissing, String threshold,
-                                      boolean useOcr, boolean extractImages, boolean extractTableStructure,
-                                      boolean summarizeImages) {
+    protected SycamoreIngestProcessor(String tag, String description, DocParseOptions options) {
         super(tag, description);
-        this.inputField = inputField;
-        this.outputField = outputField;
-        this.ignoreMissing = ignoreMissing;
-        this.threshold = threshold;
-        this.useOcr = useOcr;
-        this.extractImages = extractImages;
-        this.extractTableStructure = extractTableStructure;
-        this.summarizeImages = summarizeImages;
-
+        this.options = options;
         defaultClient.setBasePath("https://api.aryn.ai");
 
         // Configure HTTP bearer authorization: HTTPBearer
         HttpBearerAuth HTTPBearer = (HttpBearerAuth) defaultClient.getAuthentication("HTTPBearer");
-        HTTPBearer.setBearerToken(apiKey);
+        HTTPBearer.setBearerToken(options.getAryn_api_key());
 
         apiInstance = new DefaultApi(defaultClient);
     }
@@ -91,12 +72,12 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     public IngestDocument execute(IngestDocument ingestDocument) throws Exception {
         Map<String, Object> additionalFields = new HashMap<>();
 
-        byte[] input = ingestDocument.getFieldValueAsBytes(inputField, ignoreMissing);
+        byte[] input = ingestDocument.getFieldValueAsBytes(this.options.getInput_field(), this.options.isIgnore_missing());
 
-        if (input == null && ignoreMissing) {
+        if (input == null && this.options.isIgnore_missing()) {
             return ingestDocument;
         } else if (input == null) {
-            throw new IllegalArgumentException("field [" + inputField + "] is null, cannot parse.");
+            throw new IllegalArgumentException("field [" + this.options.getInput_field() + "] is null, cannot parse.");
         }
 
         Path tempFile = null;
@@ -104,11 +85,11 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         try {
             tempFile = Files.createTempFile(null, null);
             Files.write(tempFile, input);
-            File options = getOptionFile(this.threshold, this.useOcr, this.extractImages, this.extractTableStructure, this.summarizeImages);
+            File options = getOptionFile(); // this.threshold, this.useOcr, this.extractImages, this.extractTableStructure, this.summarizeImages);
             List res = partition(tempFile.toFile(), options);
             if (res != null) {
                 String text = joinAllTextRepresentations(res);
-                ingestDocument.setFieldValue(this.outputField, text);
+                ingestDocument.setFieldValue(this.options.getOutput_field(), text);
                 ingestDocument.setFieldValue("partitioner_output", res);
             }
             options.delete();
@@ -175,26 +156,10 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     }
 
     @VisibleForTesting
-    File getOptionFile(String threshold, boolean useOcr, boolean extractImages, boolean extractTableStructure, boolean summarizeImages) {
-        String options = threshold.equals("auto") ? String.format(Locale.ROOT,
-                "{\"threshold\": \"%s\", \"use_ocr\": \"%s\", \"extract_images\": \"%s\"," +
-                        " \"extract_table_structure\": \"%s\", \"summarize_images\": \"%s\"}",
-                threshold,
-                String.valueOf(useOcr).toLowerCase(Locale.ROOT),
-                String.valueOf(extractImages).toLowerCase(Locale.ROOT),
-                String.valueOf(extractTableStructure).toLowerCase(Locale.ROOT),
-                String.valueOf(summarizeImages).toLowerCase(Locale.ROOT))
-                : String.format(Locale.ROOT,
-                        "{\"threshold\": %.3f, \"use_ocr\": \"%s\", \"extract_images\": \"%s\", " +
-                                "\"extract_table_structure\": \"%s\", \"summarize_images\": \"%s\"}",
-                        Double.valueOf(threshold),
-                        String.valueOf(useOcr).toLowerCase(Locale.ROOT),
-                        String.valueOf(extractImages).toLowerCase(Locale.ROOT),
-                        String.valueOf(extractTableStructure).toLowerCase(Locale.ROOT),
-                        String.valueOf(summarizeImages).toLowerCase(Locale.ROOT));
+    File getOptionFile() throws Exception {
         try {
             Path tempFile = Files.createTempFile(null, null);
-            Files.writeString(tempFile, options);
+            Files.writeString(tempFile, options.toJsonString());
             return tempFile.toFile();
         } catch (IOException ex) {
             log.error(ex.getMessage(), ex);

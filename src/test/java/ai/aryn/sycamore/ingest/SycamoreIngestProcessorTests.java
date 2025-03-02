@@ -37,21 +37,45 @@ public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
 
     public void testGetOptionFile() throws Exception {
         String threshold = "0.01";
+
+        DocParseOptions options = DocParseOptions.builder()
+                .input_field("input")
+                .output_field("output")
+                .ignore_missing(false)
+                .aryn_api_key("apiKey")
+                .threshold(threshold)
+                .use_ocr(false)
+                .ocr_language("english")
+                .extract_images(false)
+                .extract_table_structure(false)
+                .summarize_images(false)
+                .chunking_options(Map.of())
+                .build();
         SycamoreIngestProcessor processor = new SycamoreIngestProcessor(
-                "tag", "desc", "input", "output",
-                "apiKey", false, threshold, false,
-                false, false, false);
-        File actual = processor.getOptionFile(threshold, false, false, false, false);
+                "tag", "desc", options);
+        File actual = processor.getOptionFile();
         String fileContent = Files.readString(actual.toPath());
         Gson gson = new GsonBuilder().create();
         JsonObject json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
         assertThat(json.get("threshold").getAsDouble(), is(Double.parseDouble(threshold)));
 
         threshold = "auto";
+        DocParseOptions options2 = DocParseOptions.builder()
+                .input_field("input")
+                .output_field("output")
+                .ignore_missing(false)
+                .aryn_api_key("apiKey")
+                .threshold(threshold)
+                .use_ocr(false)
+                .ocr_language("english")
+                .extract_images(false)
+                .extract_table_structure(false)
+                .summarize_images(false)
+                .chunking_options(Map.of())
+                .build();
         processor = new SycamoreIngestProcessor(
-                "tag", "desc", "input", "output", "apiKey", false,
-                threshold, false, false, false, false);
-        actual = processor.getOptionFile(threshold, false, false, false, false);
+                "tag", "desc", options2);
+        actual = processor.getOptionFile();
         fileContent = Files.readString(actual.toPath());
         gson = new GsonBuilder().create();
         json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
@@ -61,10 +85,22 @@ public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
     @Ignore
     public void testExecute() throws Exception {
         String threshold = "0.01";
-        String key = System.getenv("ARYN_TOKEN");
+        DocParseOptions options = DocParseOptions.builder()
+                .input_field("input")
+                .output_field("output")
+                .ignore_missing(false)
+                .aryn_api_key("apiKey")
+                .threshold(threshold)
+                .use_ocr(false)
+                .ocr_language("english")
+                .extract_images(false)
+                .extract_table_structure(false)
+                .summarize_images(false)
+                .chunking_options(Map.of())
+                .build();
+        String key = System.getenv("ARYN_API_KEY");
         SycamoreIngestProcessor processor = new SycamoreIngestProcessor(
-                "tag", "desc", "input", "output", key, false,
-                threshold, false, false, false, false);
+                "tag", "desc", options);
 
         IngestDocument doc = new IngestDocument("test-index", null, null, null, null, Map.of("input", "foo"));
         IngestDocument output = processor.execute(doc);

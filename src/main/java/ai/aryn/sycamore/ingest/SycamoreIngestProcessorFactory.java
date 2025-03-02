@@ -19,7 +19,7 @@ package ai.aryn.sycamore.ingest;
 
 import org.opensearch.ingest.Processor;
 
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.opensearch.ingest.ConfigurationUtils.*;
@@ -34,17 +34,31 @@ public class SycamoreIngestProcessorFactory implements Processor.Factory {
         String outputtField = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "output_field", "parsed_data");
         // List<String> propertyNames = readOptionalList(SycamoreIngestProcessor.TYPE, processorTag, config, "properties");
         boolean ignoreMissing = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "ignore_missing", false);
-        String apiKey = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "aryn_api_key");
+        String arynApiKey = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "aryn_api_key");
         String threshold = readStringOrDoubleProperty(SycamoreIngestProcessor.TYPE, tag, config, "threshold", "auto");
         boolean useOcr = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "use_ocr", false);
+        String ocrLanguage = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "ocr_language", "english");
         boolean extractImages = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_images", false);
         boolean extractTableStructure = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_table_structure", false);
         boolean summarizeImages = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "summarize_images", false);
-
+        Map<String, Object> chunkingOptions = readOptionalMap(SycamoreIngestProcessor.TYPE, tag, config, "chunking_options");
         // Apply Tika?
 
-        return new SycamoreIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing,
-                threshold, useOcr, extractImages, extractTableStructure, summarizeImages);
+        DocParseOptions options = DocParseOptions.builder()
+                .input_field(inputField)
+                .output_field(outputtField)
+                .ignore_missing(ignoreMissing)
+                .aryn_api_key(arynApiKey)
+                .threshold(threshold)
+                .use_ocr(useOcr)
+                .ocr_language(ocrLanguage)
+                .extract_images(extractImages)
+                .extract_table_structure(extractTableStructure)
+                .summarize_images(summarizeImages)
+                .chunking_options(chunkingOptions)
+                .build();
+
+        return new SycamoreIngestProcessor(tag, description, options);
     }
 
     static String readStringOrDoubleProperty(String processorType, String processorTag, Map<String, Object> configuration, String propertyName, String defaultValue) {
@@ -64,7 +78,7 @@ public class SycamoreIngestProcessorFactory implements Processor.Factory {
         } else if (value instanceof String) {
             return (String)value;
         } else if (value instanceof Double) {
-            return String.valueOf(value);
+            return String.format(Locale.ROOT, "%.2f", value);
         } else {
             throw newConfigurationException(processorType, processorTag, propertyName, "property isn't a string or double, but of type [" + value.getClass().getName() + "]");
         }

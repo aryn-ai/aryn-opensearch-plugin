@@ -46,7 +46,6 @@ import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.query.MatchAllQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.ml.common.model.MLModelState;
 import org.opensearch.search.sort.SortBuilder;
 import org.opensearch.test.rest.OpenSearchRestTestCase;
 
@@ -97,7 +96,7 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
             // expectedPassages.add("standard tokenizer in OpenSearch.");
             validateIndexIngestResults(INDEX_NAME, "extracted", expectedPassages);
         } finally {
-            wipeOffTestResources(INDEX_NAME, pipelineName, null, null);
+            wipeOffTestResources(INDEX_NAME, pipelineName);
         }
     }
 
@@ -377,24 +376,10 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
 
     protected void wipeOffTestResources(
             final String indexName,
-            final String ingestPipeline,
-            final String modelId,
-            final String searchPipeline
+            final String ingestPipeline
     ) throws IOException {
         if (ingestPipeline != null) {
             deletePipeline(ingestPipeline);
-        }
-        if (searchPipeline != null) {
-            deleteSearchPipeline(searchPipeline);
-        }
-        if (modelId != null) {
-            try {
-                deleteModel(modelId);
-            } catch (AssertionError e) {
-                // sometimes we have flaky test that the model state doesn't change after call undeploy api
-                // for this case we can call undeploy api one more time
-                deleteModel(modelId);
-            }
         }
         if (indexName != null) {
             deleteIndex(indexName);
@@ -409,84 +394,5 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         String responseBody = EntityUtils.toString(response.getEntity());
         Map<String, Object> responseMap = createParser(XContentType.JSON.xContent(), responseBody).map();
         return responseMap;
-    }
-
-    @SneakyThrows
-    protected void deleteSearchPipeline(final String pipelineId) {
-        makeRequest(
-                client(),
-                "DELETE",
-                String.format(LOCALE, "/_search/pipeline/%s", pipelineId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-    }
-
-    @SneakyThrows
-    protected void deleteModel(String modelId) {
-        // need to undeploy first as model can be in use
-        makeRequest(
-                client(),
-                "POST",
-                String.format(LOCALE, "/_plugins/_ml/models/%s/_undeploy", modelId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-
-        // wait for model undeploy to complete.
-        // Sometimes the undeploy action results in a DEPLOY_FAILED state. But this does not block the model from being deleted.
-        // So set both UNDEPLOYED and DEPLOY_FAILED as exit state.
-        pollForModelState(modelId, Set.of(MLModelState.UNDEPLOYED, MLModelState.DEPLOY_FAILED));
-
-        makeRequest(
-                client(),
-                "DELETE",
-                String.format(LOCALE, "/_plugins/_ml/models/%s", modelId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-    }
-
-    protected void pollForModelState(String modelId, Set<MLModelState> exitModelStates) throws InterruptedException {
-        MLModelState currentState = null;
-        for (int i = 0; i < MAX_RETRY; i++) {
-            Thread.sleep(MAX_TIME_OUT_INTERVAL);
-            currentState = getModelState(modelId);
-            if (exitModelStates.contains(currentState)) {
-                return;
-            }
-        }
-        fail(
-                String.format(
-                        LOCALE,
-                        "Model state does not reached exit states %s after %d attempts with interval of %d ms, latest model state: %s.",
-                        StringUtils.join(exitModelStates, ","),
-                        MAX_RETRY,
-                        MAX_TIME_OUT_INTERVAL,
-                        currentState
-                )
-        );
-    }
-
-    @SneakyThrows
-    protected MLModelState getModelState(String modelId) {
-        Response getModelResponse = makeRequest(
-                client(),
-                "GET",
-                String.format(LOCALE, "/_plugins/_ml/models/%s", modelId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-        Map<String, Object> getModelResponseJson = XContentHelper.convertToMap(
-                XContentType.JSON.xContent(),
-                EntityUtils.toString(getModelResponse.getEntity()),
-                false
-        );
-        String modelState = (String) getModelResponseJson.get("model_state");
-        return MLModelState.valueOf(modelState);
     }
 }

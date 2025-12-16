@@ -15,30 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ai.aryn.sycamore.ingest;
+package ai.aryn.docparse;
 
 import org.opensearch.ingest.Processor;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.opensearch.ingest.ConfigurationUtils.*;
 import static org.opensearch.ingest.ConfigurationUtils.readBooleanProperty;
 
-public class SycamoreIngestProcessorFactory implements Processor.Factory {
+public class ArynIngestProcessorFactory implements Processor.Factory {
 
     @Override
     public Processor create(Map<String, Processor.Factory> processorFactories, String tag, String description, Map<String, Object> config)
         throws Exception {
-        String inputField = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "input_field", "data");
-        String outputtField = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "output_field", "parsed_data");
-        // List<String> propertyNames = readOptionalList(SycamoreIngestProcessor.TYPE, processorTag, config, "properties");
-        boolean ignoreMissing = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "ignore_missing", false);
-        String apiKey = readStringProperty(SycamoreIngestProcessor.TYPE, tag, config, "aryn_api_key");
-        String threshold = readStringOrDoubleProperty(SycamoreIngestProcessor.TYPE, tag, config, "threshold", "auto");
-        boolean useOcr = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "use_ocr", false);
-        boolean extractImages = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_images", false);
-        boolean extractTableStructure = readBooleanProperty(SycamoreIngestProcessor.TYPE, tag, config, "extract_table_structure", false);
+        String inputField = readStringProperty(ArynIngestProcessor.TYPE, tag, config, "input_field", "data");
+        String outputtField = readStringProperty(ArynIngestProcessor.TYPE, tag, config, "output_field", "parsed_data");
+        // List<String> propertyNames = readOptionalList(ArynIngestProcessor.TYPE, processorTag, config, "properties");
+        boolean ignoreMissing = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "ignore_missing", false);
+        String apiKey = readStringProperty(ArynIngestProcessor.TYPE, tag, config, "aryn_api_key");
+        String threshold = readStringOrDoubleProperty(ArynIngestProcessor.TYPE, tag, config, "threshold", "auto");
+        boolean useOcr = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "use_ocr", false);
+        boolean extractImages = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "extract_images", false);
+        boolean extractTableStructure = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "extract_table_structure", false);
 
         // TODO add support for using an LLM to extract more context from images.
         String modelId;
@@ -47,7 +46,7 @@ public class SycamoreIngestProcessorFactory implements Processor.Factory {
 
         // Apply Tika?
 
-        return new SycamoreIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing,
+        return new ArynIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing,
                 threshold, useOcr, extractImages, extractTableStructure);
     }
 

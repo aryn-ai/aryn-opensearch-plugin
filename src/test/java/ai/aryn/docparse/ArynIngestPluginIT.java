@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ai.aryn.sycamore.ingest;
+package ai.aryn.docparse;
 
 import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
@@ -60,12 +60,12 @@ import java.util.*;
 import static org.hamcrest.Matchers.containsString;
 
 // @ThreadLeakScope(ThreadLeakScope.Scope.NONE)
-public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
+public class ArynIngestPluginIT extends OpenSearchRestTestCase {
     protected final ClassLoader classLoader = this.getClass().getClassLoader();
-    private static final String TEST_DATA_ROOT = "ai/aryn/sycamore/ingest/test_data/";
+    private static final String TEST_DATA_ROOT = "test_data/";
     private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME = Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json");
     protected static final Locale LOCALE = Locale.ROOT;
-    public static final String DEFAULT_USER_AGENT = "sycamore-ingest-integ-test";
+    public static final String DEFAULT_USER_AGENT = "aryn-ingest-integ-test";
     private static final String INDEX_NAME = "test_index";
     public static final int MAX_TIME_OUT_INTERVAL = 3000;
     public static final int MAX_RETRY = 5;
@@ -79,11 +79,11 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 
         logger.info("response body: {}", body);
-        assertThat(body, containsString("sycamore-ingest"));
+        assertThat(body, containsString("aryn-opensearch-plugin"));
     }
 
     @SneakyThrows
-    public void testSycamoreIngestProcessor() {
+    public void testArynIngestProcessor() {
         String pipelineName = "simple";
         try {
             createPipelineProcessor(pipelineName);
@@ -214,13 +214,14 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         byte[] docBytes = FileUtils.readFileToByteArray(Path.of(classLoader.getResource(documentPath).toURI()).toFile());
         String docContent = Base64.getEncoder().encodeToString(docBytes);
         String requestBody = String.format(LOCALE, "{ \"data\": \"%s\"}", docContent);
+        System.out.println("Ingesting document of size: " + docBytes.length + " bytes");
         Response response = makeRequest(
                 client(),
                 "POST",
                 INDEX_NAME + "/_doc?refresh",
                 null,
                 new InputStreamEntity(new ByteArrayInputStream(requestBody.getBytes(StandardCharsets.UTF_8)), ContentType.APPLICATION_JSON),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, "sycamore-ingest-it"))
+                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, "aryn-ingest-it"))
         );
         Map<String, Object> map = XContentHelper.convertToMap(
                 XContentType.JSON.xContent(),

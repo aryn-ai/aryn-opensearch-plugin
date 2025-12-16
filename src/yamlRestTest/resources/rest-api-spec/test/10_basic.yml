@@ -5,4 +5,4 @@
         h: component
 
   - match:
-      $body: /^sycamore-ingest\n$/
+      $body: /^aryn-opensearch-plugin\n$/

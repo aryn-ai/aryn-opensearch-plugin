@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ai.aryn.sycamore.ingest;
+package ai.aryn.docparse;
 
 import org.opensearch.ingest.Processor;
 import org.opensearch.plugins.IngestPlugin;
@@ -23,9 +23,9 @@ import org.opensearch.plugins.Plugin;
 
 import java.util.Map;
 
-public class SycamoreIngestPlugin extends Plugin implements IngestPlugin {
+public class ArynIngestPlugin extends Plugin implements IngestPlugin {
     @Override
     public Map<String, Processor.Factory> getProcessors(Processor.Parameters parameters) {
-        return Map.of(SycamoreIngestProcessor.TYPE, new SycamoreIngestProcessorFactory());
+        return Map.of(ArynIngestProcessor.TYPE, new ArynIngestProcessorFactory());
     }
 }

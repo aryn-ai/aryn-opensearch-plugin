@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ai.aryn.sycamore.ingest;
+package ai.aryn.docparse;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,13 +31,13 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 
-public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
+public class ArynIngestProcessorTests extends OpenSearchTestCase {
     public void testCallAPS() throws Exception {
     }
 
     public void testGetOptionFile() throws Exception {
         String threshold = "0.01";
-        SycamoreIngestProcessor processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
+        ArynIngestProcessor processor = new ArynIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
         File actual = processor.getOptionFile(threshold, false, false, false);
         String fileContent = Files.readString(actual.toPath());
         Gson gson = new GsonBuilder().create();
@@ -45,7 +45,7 @@ public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
         assertThat(json.get("threshold").getAsDouble(), is(Double.parseDouble(threshold)));
 
         threshold  = "auto";
-        processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
+        processor = new ArynIngestProcessor("tag", "desc", "input", "output", "apiKey", false, threshold, false, false, false);
         actual = processor.getOptionFile(threshold, false, false, false);
         fileContent = Files.readString(actual.toPath());
         gson = new GsonBuilder().create();
@@ -57,7 +57,7 @@ public class SycamoreIngestProcessorTests extends OpenSearchTestCase {
     public void testExecute() throws Exception {
         String threshold = "0.01";
         String key = System.getenv("ARYN_TOKEN");
-        SycamoreIngestProcessor processor = new SycamoreIngestProcessor("tag", "desc", "input", "output", key, false, threshold, false, false, false);
+        ArynIngestProcessor processor = new ArynIngestProcessor("tag", "desc", "input", "output", key, false, threshold, false, false, false);
 
         IngestDocument doc = new IngestDocument("test-index", null, null, null, null, Map.of("input", "foo"));
         IngestDocument output = processor.execute(doc);

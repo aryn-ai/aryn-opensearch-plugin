@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ai.aryn.sycamore.ingest;
+package ai.aryn.docparse;
 
 import ai.aryn.partitioner.ApiClient;
 import ai.aryn.partitioner.ApiException;
@@ -39,11 +39,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Log4j2
-public class SycamoreIngestProcessor extends AbstractProcessor {
+public class ArynIngestProcessor extends AbstractProcessor {
 
-    public static final String TYPE = "sycamore_ingest";
+    public static final String TYPE = "aryn_ingest";
 
-    public static final String USER_AGENT = "SycamoreIngestPlugin_v0.1.0";
+    public static final String USER_AGENT = "ArynOpenSearchPlugin_v0.1.0";
     public static final String ARYN_CALL_ID = "x-aryn-call-id";
     public static final String ARYN_API_VERSION = "x-aryn-api-version";
     private final String inputField;
@@ -57,10 +57,10 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
     final ApiClient defaultClient = Configuration.getDefaultApiClient();
     final DefaultApi apiInstance;
 
-    protected SycamoreIngestProcessor(String tag, String description,
-                                      String inputField, String outputField,
-                                      String apiKey, boolean ignoreMissing, String threshold,
-                                      boolean useOcr, boolean extractImages, boolean extractTableStructure) {
+    protected ArynIngestProcessor(String tag, String description,
+                                  String inputField, String outputField,
+                                  String apiKey, boolean ignoreMissing, String threshold,
+                                  boolean useOcr, boolean extractImages, boolean extractTableStructure) {
         super(tag, description);
         this.inputField = inputField;
         this.outputField = outputField;
@@ -70,7 +70,7 @@ public class SycamoreIngestProcessor extends AbstractProcessor {
         this.extractImages = extractImages;
         this.extractTableStructure = extractTableStructure;
 
-        defaultClient.setBasePath("https://api.aryn.cloud");
+        defaultClient.setBasePath("https://api.aryn.ai");
 
         // Configure HTTP bearer authorization: HTTPBearer
         HttpBearerAuth HTTPBearer = (HttpBearerAuth) defaultClient.getAuthentication("HTTPBearer");

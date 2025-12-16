@@ -126,6 +126,7 @@ opensearchplugin {
 def mlJarDirectory = "$buildDir/dependencies/opensearch-ml"
 
 dependencies {
+    implementation 'ai.aryn:docparse-java-client:0.1.0'
     // api group: 'org.opensearch', name:'opensearch-ml', version: "${opensearch_build}"
     // zipArchive group: 'org.opensearch.plugin', name:'opensearch-ml-plugin', version: "${opensearch_build}"
     // implementation fileTree(dir: mlJarDirectory, include: "opensearch-ml-${opensearch_build}.jar")
@@ -139,7 +140,7 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
 
     // implementation("org.openapitools:openapi-java-client:0.1.0")
-    implementation fileTree(dir: 'libs', include: '*.jar')
+    // implementation fileTree(dir: 'libs', include: '*.jar')
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1"
     implementation "org.openapitools:jackson-databind-nullable:0.2.6"
     implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'

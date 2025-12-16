@@ -17,11 +17,11 @@
  */
 package ai.aryn.docparse;
 
-import ai.aryn.partitioner.ApiClient;
-import ai.aryn.partitioner.ApiException;
-import ai.aryn.partitioner.Configuration;
-import ai.aryn.partitioner.api.DefaultApi;
-import ai.aryn.partitioner.auth.HttpBearerAuth;
+import ai.aryn.docparse.api.PartitionApi;
+import ai.aryn.docparse.auth.HttpBearerAuth;
+import ai.aryn.docparse.model.BodySyncPartitionDocumentV1Options;
+import ai.aryn.docparse.model.Element;
+import ai.aryn.docparse.model.PartitionerResponse;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.log4j.Log4j2;
 import org.opensearch.ingest.AbstractProcessor;
@@ -53,9 +53,10 @@ public class ArynIngestProcessor extends AbstractProcessor {
     private final boolean useOcr;
     private final boolean extractImages;
     private final boolean extractTableStructure;
+    final HttpBearerAuth HTTPBearer;
+    final PartitionApi api;
 
     final ApiClient defaultClient = Configuration.getDefaultApiClient();
-    final DefaultApi apiInstance;
 
     protected ArynIngestProcessor(String tag, String description,
                                   String inputField, String outputField,
@@ -71,12 +72,11 @@ public class ArynIngestProcessor extends AbstractProcessor {
         this.extractTableStructure = extractTableStructure;
 
         defaultClient.setBasePath("https://api.aryn.ai");
-
+        //String apiKey = System.getenv("ARYN_API_KEY");
         // Configure HTTP bearer authorization: HTTPBearer
-        HttpBearerAuth HTTPBearer = (HttpBearerAuth) defaultClient.getAuthentication("HTTPBearer");
+        HTTPBearer = (HttpBearerAuth) defaultClient.getAuthentication("HTTPBearer");
         HTTPBearer.setBearerToken(apiKey);
-
-        apiInstance = new DefaultApi(defaultClient);
+        api = new PartitionApi(defaultClient);
     }
 
     @Override
@@ -101,14 +101,14 @@ public class ArynIngestProcessor extends AbstractProcessor {
         try {
             tempFile = Files.createTempFile(null, null);
             Files.write(tempFile, input);
-            File options = getOptionFile(this.threshold, this.useOcr, this.extractImages, this.extractTableStructure);
-            List res = partition(tempFile.toFile(), options);
+            // File options = getOptionFile(this.threshold, this.useOcr, this.extractImages, this.extractTableStructure);
+            BodySyncPartitionDocumentV1Options options = new BodySyncPartitionDocumentV1Options();
+            List<Element> res = partition(tempFile.toFile(), options);
             if (res != null) {
                 String text = joinAllTextRepresentations(res);
                 ingestDocument.setFieldValue(this.outputField, text);
-                ingestDocument.setFieldValue("partitioner_output", res);
+                // ingestDocument.setFieldValue("aryn_output", res);
             }
-            options.delete();
         } catch (IOException e) {
             log.error("Unable to process document: {}", e, e);
             throw new RuntimeException(e);
@@ -121,51 +121,21 @@ public class ArynIngestProcessor extends AbstractProcessor {
         return ingestDocument;
     }
 
-    private List partition(File input, File options) throws Exception {
+    private List<Element> partition(File input, BodySyncPartitionDocumentV1Options options) throws Exception {
         Object list = AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
 
-            Object elements = null;
             try {
-                Object result = apiInstance.partition(input, USER_AGENT, options);
+                PartitionerResponse res = api.syncPartitionDocumentV1(USER_AGENT, input, null, options, Collections.emptyMap());
                 Map<String, List<String>> responseHeaders = this.defaultClient.getResponseHeaders();
                 String arynCallId = responseHeaders.get(ARYN_CALL_ID).get(0);
                 String arynVersion = responseHeaders.get(ARYN_API_VERSION).get(0);
                 log.info("aryn_call_id: {}, aryn_version: {}", arynCallId, arynVersion);
-
-                // System.out.println(result);
-                if (!(result instanceof Map)) {
-                    log.error("Unexpected response from APS: {}", result.toString());
-                    return null;
-                }
-
-                elements = ((Map) result).get("elements");
-                if (elements == null) {
-                    log.warn("APS response does not contain any elements: {}", result.toString());
-                    return null;
-                }
-                if (!(elements instanceof List)) {
-                    log.error("The elements field in the APS response is not a List!!! {}", elements.toString());
-                    return null;
-                }
-
-                /*
-                 * for debugging
-                for (Object element : ((List) elements)) {
-                    assert element instanceof Map;
-                    Map map = (Map) element;
-                    assert map.containsKey("type");
-                    System.out.println(map.get("type"));
-                    if (map.containsKey("text_representation")) {
-                        System.out.println(map.get("text_representation"));
-                    }
-                }*/
+                return res.getElements();
             } catch (ApiException e) {
                 // TODO add retries
                 log.error("Call to Aryn Partitioner failed: {}", e, e);
                 throw new RuntimeException(e);
             }
-
-            return elements;
         });
 
         return list == null ? null : (List) list;
@@ -195,12 +165,12 @@ public class ArynIngestProcessor extends AbstractProcessor {
         }
     }
 
-    private String joinAllTextRepresentations(List list) {
+    private String joinAllTextRepresentations(List<Element> elements) {
         StringBuilder builder = new StringBuilder();
-        for (Object obj : list) {
-            Map map = (Map) obj;
-            if (map.containsKey("text_representation")) {
-                builder.append(String.format(Locale.ROOT, "%s%n", (String) map.get("text_representation")));
+        for (Element element : elements) {
+            String text = element.getTextRepresentation();
+            if (text != null && !text.isEmpty()) {
+                builder.append(String.format(Locale.ROOT, "%s%n", text));
             }
         }
         return builder.toString();
@@ -226,10 +196,4 @@ public class ArynIngestProcessor extends AbstractProcessor {
     public String getType() {
         return TYPE;
     }
-
-    // TODO
-    static class Element {}
-    static class TextElement extends Element {}
-    static class ImageElement extends Element {}
-    static class TableElement extends Element {}
 }

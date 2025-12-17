@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ai.aryn.sycamore.ingest;
+package ai.aryn.docparse;
 
 import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.junit.Ignore;
 import org.opensearch.client.*;
 import org.opensearch.common.xcontent.XContentFactory;
 import org.opensearch.common.xcontent.XContentHelper;
@@ -46,7 +47,6 @@ import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.XContentBuilder;
 import org.opensearch.index.query.MatchAllQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.ml.common.model.MLModelState;
 import org.opensearch.search.sort.SortBuilder;
 import org.opensearch.test.rest.OpenSearchRestTestCase;
 
@@ -61,13 +61,17 @@ import java.util.*;
 import static org.hamcrest.Matchers.containsString;
 
 // @ThreadLeakScope(ThreadLeakScope.Scope.NONE)
-public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
+public class ArynIngestPluginIT extends OpenSearchRestTestCase {
     protected final ClassLoader classLoader = this.getClass().getClassLoader();
-    private static final String TEST_DATA_ROOT = "ai/aryn/sycamore/ingest/test_data/";
-    private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME = Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json");
+    private static final String TEST_DATA_ROOT = "test_data/";
+    private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME =
+            Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json",
+                    "property_extraction", TEST_DATA_ROOT + "pipeline_configuration_extract.json",
+                    "property_extraction2", TEST_DATA_ROOT + "pipeline_configuration_extract2.json");
     protected static final Locale LOCALE = Locale.ROOT;
-    public static final String DEFAULT_USER_AGENT = "sycamore-ingest-integ-test";
+    public static final String DEFAULT_USER_AGENT = "aryn-ingest-integ-test";
     private static final String INDEX_NAME = "test_index";
+    private static final String SCHEMA_PATH = TEST_DATA_ROOT + "real_estate_schema.json";
     public static final int MAX_TIME_OUT_INTERVAL = 3000;
     public static final int MAX_RETRY = 5;
     //@Override
@@ -80,24 +84,69 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 
         logger.info("response body: {}", body);
-        assertThat(body, containsString("sycamore-ingest"));
+        assertThat(body, containsString("aryn-opensearch-plugin"));
     }
 
     @SneakyThrows
-    public void testSycamoreIngestProcessor() {
+    public void testArynIngestProcessor() {
         String pipelineName = "simple";
         try {
-            createPipelineProcessor(pipelineName);
-            createIndex(INDEX_NAME, pipelineName);
-            ingestDocument(TEST_DATA_ROOT + "national_parks_images_table.pdf");
-
+            try {
+                createPipelineProcessor(pipelineName);
+                createIndex(INDEX_NAME, pipelineName);
+                ingestDocument(TEST_DATA_ROOT + "national_parks_images_table.pdf");
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Exception during test setup: " + e.getMessage());
+            }
             List<String> expectedPassages = new ArrayList<>();
             expectedPassages.add("Yosemite");
             expectedPassages.add("Yellowstone");  // contains a single paragraph, two sentences and 24 tokens by ");
             // expectedPassages.add("standard tokenizer in OpenSearch.");
             validateIndexIngestResults(INDEX_NAME, "extracted", expectedPassages);
         } finally {
-            wipeOffTestResources(INDEX_NAME, pipelineName, null, null);
+            wipeOffTestResources(INDEX_NAME, pipelineName);
+        }
+    }
+
+    @SneakyThrows
+    public void testArynIngestProcessorWithPropertyExtraction() {
+        String pipelineName = "property_extraction";
+        try {
+            try {
+                createPipelineProcessor(pipelineName);
+                createIndex(INDEX_NAME, pipelineName);
+                ingestDocument(TEST_DATA_ROOT + "real_estate_1.pdf");
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Exception during test setup: " + e.getMessage());
+            }
+            List<String> expectedPassages = new ArrayList<>();
+            expectedPassages.add("Morristown Infill");
+            validateIndexIngestResults(INDEX_NAME, "property_name", expectedPassages);
+        } finally {
+            wipeOffTestResources(INDEX_NAME, pipelineName);
+        }
+    }
+
+    @Ignore
+    @SneakyThrows
+    public void testArynIngestProcessorWithPropertyExtraction2() {
+        String pipelineName = "property_extraction2";
+        try {
+            try {
+                createPipelineProcessor(pipelineName);
+                createIndex(INDEX_NAME, pipelineName);
+                ingestDocument(TEST_DATA_ROOT + "real_estate_1.pdf");
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Exception during test setup: " + e.getMessage());
+            }
+            List<String> expectedPassages = new ArrayList<>();
+            expectedPassages.add("Morristown Infill");
+            validateIndexIngestResults(INDEX_NAME, "property_name", expectedPassages);
+        } finally {
+            wipeOffTestResources(INDEX_NAME, pipelineName);
         }
     }
 
@@ -113,6 +162,7 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         String requestBody = Files.readString(Path.of(pipelineURLPath.toURI()));
         String arynApiKey = System.getenv("ARYN_TOKEN");
         requestBody = requestBody.replaceAll("__ARYN_TOKEN__", arynApiKey);
+        requestBody = requestBody.replaceAll("__SCHEMA_PATH__", classLoader.getResource(SCHEMA_PATH).toURI().toString());
         createPipelineProcessor(requestBody, pipelineName, "", null);
     }
 
@@ -215,13 +265,14 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         byte[] docBytes = FileUtils.readFileToByteArray(Path.of(classLoader.getResource(documentPath).toURI()).toFile());
         String docContent = Base64.getEncoder().encodeToString(docBytes);
         String requestBody = String.format(LOCALE, "{ \"data\": \"%s\"}", docContent);
+        System.out.println("Ingesting document of size: " + docBytes.length + " bytes");
         Response response = makeRequest(
                 client(),
                 "POST",
                 INDEX_NAME + "/_doc?refresh",
                 null,
                 new InputStreamEntity(new ByteArrayInputStream(requestBody.getBytes(StandardCharsets.UTF_8)), ContentType.APPLICATION_JSON),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, "sycamore-ingest-it"))
+                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, "aryn-ingest-it"))
         );
         Map<String, Object> map = XContentHelper.convertToMap(
                 XContentType.JSON.xContent(),
@@ -242,9 +293,13 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         assert (documentSource instanceof Map);
         @SuppressWarnings("unchecked")
         Map<String, Object> documentSourceMap = (Map<String, Object>) documentSource;
-        assert (documentSourceMap).containsKey(fieldName);
         // Object ingestOutputs = documentSourceMap.get(fieldName);
         // assertEquals(expected, ingestOutputs);
+        for (Map.Entry<String, Object> entry : documentSourceMap.entrySet()) {
+            System.out.println("Field: " + entry.getKey() + " => Value: " + entry.getValue());
+        }
+        assert (documentSourceMap).containsKey(fieldName);
+        // System.out.println(documentSourceMap);
     }
 
     @SneakyThrows
@@ -377,24 +432,10 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
 
     protected void wipeOffTestResources(
             final String indexName,
-            final String ingestPipeline,
-            final String modelId,
-            final String searchPipeline
+            final String ingestPipeline
     ) throws IOException {
         if (ingestPipeline != null) {
             deletePipeline(ingestPipeline);
-        }
-        if (searchPipeline != null) {
-            deleteSearchPipeline(searchPipeline);
-        }
-        if (modelId != null) {
-            try {
-                deleteModel(modelId);
-            } catch (AssertionError e) {
-                // sometimes we have flaky test that the model state doesn't change after call undeploy api
-                // for this case we can call undeploy api one more time
-                deleteModel(modelId);
-            }
         }
         if (indexName != null) {
             deleteIndex(indexName);
@@ -409,84 +450,5 @@ public class SycamoreIngestPluginIT extends OpenSearchRestTestCase {
         String responseBody = EntityUtils.toString(response.getEntity());
         Map<String, Object> responseMap = createParser(XContentType.JSON.xContent(), responseBody).map();
         return responseMap;
-    }
-
-    @SneakyThrows
-    protected void deleteSearchPipeline(final String pipelineId) {
-        makeRequest(
-                client(),
-                "DELETE",
-                String.format(LOCALE, "/_search/pipeline/%s", pipelineId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-    }
-
-    @SneakyThrows
-    protected void deleteModel(String modelId) {
-        // need to undeploy first as model can be in use
-        makeRequest(
-                client(),
-                "POST",
-                String.format(LOCALE, "/_plugins/_ml/models/%s/_undeploy", modelId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-
-        // wait for model undeploy to complete.
-        // Sometimes the undeploy action results in a DEPLOY_FAILED state. But this does not block the model from being deleted.
-        // So set both UNDEPLOYED and DEPLOY_FAILED as exit state.
-        pollForModelState(modelId, Set.of(MLModelState.UNDEPLOYED, MLModelState.DEPLOY_FAILED));
-
-        makeRequest(
-                client(),
-                "DELETE",
-                String.format(LOCALE, "/_plugins/_ml/models/%s", modelId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-    }
-
-    protected void pollForModelState(String modelId, Set<MLModelState> exitModelStates) throws InterruptedException {
-        MLModelState currentState = null;
-        for (int i = 0; i < MAX_RETRY; i++) {
-            Thread.sleep(MAX_TIME_OUT_INTERVAL);
-            currentState = getModelState(modelId);
-            if (exitModelStates.contains(currentState)) {
-                return;
-            }
-        }
-        fail(
-                String.format(
-                        LOCALE,
-                        "Model state does not reached exit states %s after %d attempts with interval of %d ms, latest model state: %s.",
-                        StringUtils.join(exitModelStates, ","),
-                        MAX_RETRY,
-                        MAX_TIME_OUT_INTERVAL,
-                        currentState
-                )
-        );
-    }
-
-    @SneakyThrows
-    protected MLModelState getModelState(String modelId) {
-        Response getModelResponse = makeRequest(
-                client(),
-                "GET",
-                String.format(LOCALE, "/_plugins/_ml/models/%s", modelId),
-                null,
-                toHttpEntity(""),
-                ImmutableList.of(new BasicHeader(HttpHeaders.USER_AGENT, DEFAULT_USER_AGENT))
-        );
-        Map<String, Object> getModelResponseJson = XContentHelper.convertToMap(
-                XContentType.JSON.xContent(),
-                EntityUtils.toString(getModelResponse.getEntity()),
-                false
-        );
-        String modelState = (String) getModelResponseJson.get("model_state");
-        return MLModelState.valueOf(modelState);
     }
 }

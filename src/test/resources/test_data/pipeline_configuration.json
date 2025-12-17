@@ -2,15 +2,15 @@
   "description": "test",
   "processors": [
     {
-      "sycamore_ingest": {
+      "aryn_ingest": {
         "input_field": "data",
         "output_field": "extracted",
         "aryn_api_key": "__ARYN_TOKEN__",
         "ignore_missing": true,
         "threshold": "auto",
-        "use_ocr": true,
         "extract_images": true,
-        "extract_table_structure": true
+        "text_mode": "auto",
+        "table_mode": "standard"
       }
     }
   ]

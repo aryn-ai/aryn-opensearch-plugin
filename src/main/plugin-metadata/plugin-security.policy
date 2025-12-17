@@ -4,8 +4,14 @@
  */
 
 grant {
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "accessUserInformation";
     permission java.lang.RuntimePermission "getClassLoader";
     permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+
+    permission java.lang.RuntimePermission "createClassLoader";
+    permission java.lang.RuntimePermission "loadLibrary.*";
+    permission java.lang.RuntimePermission "setContextClassLoader";
 
     // Circuit Breaker
     permission java.lang.RuntimePermission "getFileSystemAttributes";

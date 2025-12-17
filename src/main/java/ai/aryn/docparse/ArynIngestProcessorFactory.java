@@ -35,19 +35,15 @@ public class ArynIngestProcessorFactory implements Processor.Factory {
         boolean ignoreMissing = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "ignore_missing", false);
         String apiKey = readStringProperty(ArynIngestProcessor.TYPE, tag, config, "aryn_api_key");
         String threshold = readStringOrDoubleProperty(ArynIngestProcessor.TYPE, tag, config, "threshold", "auto");
-        boolean useOcr = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "use_ocr", false);
         boolean extractImages = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "extract_images", false);
-        boolean extractTableStructure = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "extract_table_structure", false);
-
-        // TODO add support for using an LLM to extract more context from images.
-        String modelId;
-        boolean summarize_images;
-        boolean extract_entities;
-
-        // Apply Tika?
+        String textMode = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "text_mode");
+        String tableMode = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "table_mode");
+        boolean summarizeImages = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "summarize_images", false);
+        String schema = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "schema");
+        String schemaPath = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "schema_path");
 
         return new ArynIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing,
-                threshold, useOcr, extractImages, extractTableStructure);
+                threshold, extractImages, summarizeImages, textMode, tableMode, schema, schemaPath);
     }
 
     static String readStringOrDoubleProperty(String processorType, String processorTag, Map<String, Object> configuration, String propertyName, String defaultValue) {

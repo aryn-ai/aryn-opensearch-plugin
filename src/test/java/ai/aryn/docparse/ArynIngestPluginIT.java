@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.junit.Ignore;
 import org.opensearch.client.*;
 import org.opensearch.common.xcontent.XContentFactory;
 import org.opensearch.common.xcontent.XContentHelper;
@@ -63,10 +64,14 @@ import static org.hamcrest.Matchers.containsString;
 public class ArynIngestPluginIT extends OpenSearchRestTestCase {
     protected final ClassLoader classLoader = this.getClass().getClassLoader();
     private static final String TEST_DATA_ROOT = "test_data/";
-    private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME = Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json");
+    private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME =
+            Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json",
+                    "property_extraction", TEST_DATA_ROOT + "pipeline_configuration_extract.json",
+                    "property_extraction2", TEST_DATA_ROOT + "pipeline_configuration_extract2.json");
     protected static final Locale LOCALE = Locale.ROOT;
     public static final String DEFAULT_USER_AGENT = "aryn-ingest-integ-test";
     private static final String INDEX_NAME = "test_index";
+    private static final String SCHEMA_PATH = TEST_DATA_ROOT + "real_estate_schema.json";
     public static final int MAX_TIME_OUT_INTERVAL = 3000;
     public static final int MAX_RETRY = 5;
     //@Override
@@ -86,15 +91,60 @@ public class ArynIngestPluginIT extends OpenSearchRestTestCase {
     public void testArynIngestProcessor() {
         String pipelineName = "simple";
         try {
-            createPipelineProcessor(pipelineName);
-            createIndex(INDEX_NAME, pipelineName);
-            ingestDocument(TEST_DATA_ROOT + "national_parks_images_table.pdf");
-
+            try {
+                createPipelineProcessor(pipelineName);
+                createIndex(INDEX_NAME, pipelineName);
+                ingestDocument(TEST_DATA_ROOT + "national_parks_images_table.pdf");
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Exception during test setup: " + e.getMessage());
+            }
             List<String> expectedPassages = new ArrayList<>();
             expectedPassages.add("Yosemite");
             expectedPassages.add("Yellowstone");  // contains a single paragraph, two sentences and 24 tokens by ");
             // expectedPassages.add("standard tokenizer in OpenSearch.");
             validateIndexIngestResults(INDEX_NAME, "extracted", expectedPassages);
+        } finally {
+            wipeOffTestResources(INDEX_NAME, pipelineName);
+        }
+    }
+
+    @SneakyThrows
+    public void testArynIngestProcessorWithPropertyExtraction() {
+        String pipelineName = "property_extraction";
+        try {
+            try {
+                createPipelineProcessor(pipelineName);
+                createIndex(INDEX_NAME, pipelineName);
+                ingestDocument(TEST_DATA_ROOT + "real_estate_1.pdf");
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Exception during test setup: " + e.getMessage());
+            }
+            List<String> expectedPassages = new ArrayList<>();
+            expectedPassages.add("Morristown Infill");
+            validateIndexIngestResults(INDEX_NAME, "property_name", expectedPassages);
+        } finally {
+            wipeOffTestResources(INDEX_NAME, pipelineName);
+        }
+    }
+
+    @Ignore
+    @SneakyThrows
+    public void testArynIngestProcessorWithPropertyExtraction2() {
+        String pipelineName = "property_extraction2";
+        try {
+            try {
+                createPipelineProcessor(pipelineName);
+                createIndex(INDEX_NAME, pipelineName);
+                ingestDocument(TEST_DATA_ROOT + "real_estate_1.pdf");
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Exception during test setup: " + e.getMessage());
+            }
+            List<String> expectedPassages = new ArrayList<>();
+            expectedPassages.add("Morristown Infill");
+            validateIndexIngestResults(INDEX_NAME, "property_name", expectedPassages);
         } finally {
             wipeOffTestResources(INDEX_NAME, pipelineName);
         }
@@ -112,6 +162,7 @@ public class ArynIngestPluginIT extends OpenSearchRestTestCase {
         String requestBody = Files.readString(Path.of(pipelineURLPath.toURI()));
         String arynApiKey = System.getenv("ARYN_TOKEN");
         requestBody = requestBody.replaceAll("__ARYN_TOKEN__", arynApiKey);
+        requestBody = requestBody.replaceAll("__SCHEMA_PATH__", classLoader.getResource(SCHEMA_PATH).toURI().toString());
         createPipelineProcessor(requestBody, pipelineName, "", null);
     }
 
@@ -242,9 +293,13 @@ public class ArynIngestPluginIT extends OpenSearchRestTestCase {
         assert (documentSource instanceof Map);
         @SuppressWarnings("unchecked")
         Map<String, Object> documentSourceMap = (Map<String, Object>) documentSource;
-        assert (documentSourceMap).containsKey(fieldName);
         // Object ingestOutputs = documentSourceMap.get(fieldName);
         // assertEquals(expected, ingestOutputs);
+        for (Map.Entry<String, Object> entry : documentSourceMap.entrySet()) {
+            System.out.println("Field: " + entry.getKey() + " => Value: " + entry.getValue());
+        }
+        assert (documentSourceMap).containsKey(fieldName);
+        // System.out.println(documentSourceMap);
     }
 
     @SneakyThrows

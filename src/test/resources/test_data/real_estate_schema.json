@@ -1,0 +1,290 @@
+{
+  "properties": [
+    {
+      "name": "property_name",
+      "type": {
+        "type": "string",
+        "description": "Official name or title of the property/building, not the address",
+        "examples": ["The Metropolitan Tower", "Gateway Office Complex", "Riverside Retail Center"],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "len() > 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "property_address",
+      "type": {
+        "type": "string",
+        "description": "Complete street address of the property",
+        "examples": ["123 Main Street, Chicago, IL 60601", "456 Business Blvd, Suite 100, Dallas, TX 75201"],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "len() > 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "city",
+      "type": {
+        "type": "string",
+        "description": "City where the property is located",
+        "examples": ["Chicago", "Dallas", "Los Angeles"],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "len() > 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "state",
+      "type": {
+        "type": "string",
+        "description": "State where the property is located (two-letter code)",
+        "examples": ["IL", "TX", "CA"],
+        "validators": [
+          {
+            "type": "regex",
+            "regex": "^[A-Z]{2}$"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zip_code",
+      "type": {
+        "type": "string",
+        "description": "ZIP code of the property location",
+        "examples": ["60601", "75201-1234"],
+        "validators": [
+          {
+            "type": "regex",
+            "regex": "^[0-9]{5}(-[0-9]{4})?$"
+          }
+        ]
+      }
+    },
+    {
+      "name": "market_area",
+      "type": {
+        "type": "string",
+        "description": "Primary market or submarket designation, if not provided, return null",
+        "examples": ["Downtown Chicago", "Uptown Dallas", "West Los Angeles", "Greater Austin Area", null]
+      }
+    },
+    {
+      "name": "property_type",
+      "type": {
+        "type": "choice",
+        "description": "Primary property classification",
+        "examples": ["Office", "Retail", "Industrial", "Multifamily"],
+        "choices": ["Office", "Retail", "Industrial", "Multifamily", "Mixed-Use", "Hotel", "Self-Storage", "Medical", "Warehouse", "Land", "Other"]
+      }
+    },
+    {
+      "name": "total_square_footage",
+      "type": {
+        "type": "float",
+        "description": "Total rentable square footage of the property, if not provided, return null",
+        "examples": [125000.0, 45500.0, 2850000.0, null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "number_of_units",
+      "type": {
+        "type": "int",
+        "description": "Total number of rental units (for multifamily properties), if not applicable, return null",
+        "examples": [150, 85, 300, null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> 0 or is null"
+          }
+        ]
+      }
+    },
+    {
+      "name": "year_built",
+      "type": {
+        "type": "int",
+        "description": "Year the property was originally constructed, if not provided, return null",
+        "examples": [1995, 2008, 1985, null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> 1800 and <= 2025"
+          }
+        ]
+      }
+    },
+    {
+      "name": "year_renovated",
+      "type": {
+        "type": "int",
+        "description": "Most recent major renovation year, if not renovated, return null",
+        "examples": [2018, 2015, null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> year_built and <= 2025 or is null"
+          }
+        ]
+      }
+    },
+    {
+      "name": "offering_price",
+      "type": {
+        "type": "float",
+        "description": "Total purchase price or offering amount in USD",
+        "examples": [25000000.0, 12500000.0, 85000000.0],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "price_per_square_foot",
+      "type": {
+        "type": "float",
+        "description": "Price per square foot in USD",
+        "examples": [200.0, 275.50, 150.0],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "net_operating_income",
+      "type": {
+        "type": "float",
+        "description": "Annual net operating income in USD",
+        "examples": [1625000.0, 906250.0, 4930000.0],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": ">= 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "gross_rental_income",
+      "type": {
+        "type": "float",
+        "description": "Annual gross rental income in USD",
+        "examples": [2200000.0, 1350000.0, 6500000.0],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "> 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "operating_expenses",
+      "type": {
+        "type": "float",
+        "description": "Annual operating expenses in USD",
+        "examples": [575000.0, 443750.0, 1570000.0],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": ">= 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "occupancy_rate",
+      "type": {
+        "type": "float",
+        "description": "Current occupancy rate as a percentage",
+        "examples": [92.5, 87.0, 95.2],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": ">= 0 and <= 100"
+          }
+        ]
+      }
+    },
+    {
+      "name": "lead_sponsor",
+      "type": {
+        "type": "string",
+        "description": "Name of the primary sponsor or general partner, if not provided, return null"   ,
+        "examples": ["ABC Real Estate Partners", "Metropolitan Development LLC", "Prime Property Group", null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": "len() > 0 or is null"
+          }
+        ]
+      }
+    },
+    {
+      "name": "property_management_company",
+      "type": {
+        "type": "string",
+        "description": "Name of the property management company, if not provided, return null",
+        "examples": ["Premier Property Management", "Stellar Management Services", null]
+      }
+    },
+    {
+      "name": "offering_type",
+      "type": {
+        "type": "choice",
+        "description": "Type of securities offering",
+        "examples": ["Regulation D", "Private Placement", "506(b)", "506(c)"],
+        "choices": ["Regulation D", "Private Placement", "506(b)", "506(c)", "Regulation A", "Other"]
+      }
+    },
+    {
+      "name": "debt_financing_amount",
+      "type": {
+        "type": "float",
+        "description": "Amount of debt financing in USD, if no debt financing, return null",
+        "examples": [17500000.0, 8750000.0, null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": ">= 0 or is null"
+          }
+        ]
+      }
+    },
+    {
+      "name": "parking_spaces",
+      "type": {
+        "type": "int",
+        "description": "Total number of parking spaces, if not applicable, return null",
+        "examples": [150, 85, 300, null],
+        "validators": [
+          {
+            "type": "boolean_exp",
+            "expression": ">= 0 or is null"
+          }
+        ]
+      }
+    }
+  ]
+}

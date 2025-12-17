@@ -1,0 +1,18 @@
+{
+  "description": "test",
+  "processors": [
+    {
+      "aryn_ingest": {
+        "input_field": "data",
+        "output_field": "extracted",
+        "aryn_api_key": "__ARYN_TOKEN__",
+        "ignore_missing": true,
+        "threshold": "auto",
+        "extract_images": true,
+        "text_mode": "auto",
+        "table_mode": "standard",
+        "schema": "{\"properties\": [{\"name\": \"property_name\", \"type\": {\"type\": \"string\"}}, {\"name\": \"property_address\", \"type\": {\"type\": \"string\"}}, {\"name\": \"property_type\", \"type\": {\"type\": \"choice\", \"choices\": [\"Office\", \"Retail\", \"Industrial\", \"Multifamily\", \"Mixed-Use\", \"Hotel\", \"Self-Storage\", \"Medical\", \"Warehouse\", \"Land\", \"Other\"]}}]}"
+      }
+    }
+  ]
+}

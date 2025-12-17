@@ -10,7 +10,8 @@
         "threshold": "auto",
         "extract_images": true,
         "text_mode": "auto",
-        "table_mode": "standard"
+        "table_mode": "standard",
+        "schema_path": "__SCHEMA_PATH__"
       }
     }
   ]

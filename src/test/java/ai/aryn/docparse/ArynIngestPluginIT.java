@@ -21,7 +21,8 @@ import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-/*
+
+// Use these for v2.x
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -31,12 +32,16 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
- */
+
+
+/*
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
+ */
+
 import org.junit.Ignore;
 import org.opensearch.client.*;
 import org.opensearch.common.xcontent.XContentFactory;
@@ -66,18 +71,13 @@ public class ArynIngestPluginIT extends OpenSearchRestTestCase {
     private static final String TEST_DATA_ROOT = "test_data/";
     private static final Map<String, String> PIPELINE_CONFIGS_BY_NAME =
             Map.of("simple", TEST_DATA_ROOT + "pipeline_configuration.json",
-                    "property_extraction", TEST_DATA_ROOT + "pipeline_configuration_extract.json",
-                    "property_extraction2", TEST_DATA_ROOT + "pipeline_configuration_extract2.json");
+                    "property_extraction", TEST_DATA_ROOT + "pipeline_configuration_extract.json");
     protected static final Locale LOCALE = Locale.ROOT;
     public static final String DEFAULT_USER_AGENT = "aryn-ingest-integ-test";
     private static final String INDEX_NAME = "test_index";
     private static final String SCHEMA_PATH = TEST_DATA_ROOT + "real_estate_schema.json";
     public static final int MAX_TIME_OUT_INTERVAL = 3000;
     public static final int MAX_RETRY = 5;
-    //@Override
-    //protected Collection<Class<? extends Plugin>> nodePlugins() {
-    //    return Collections.singletonList(SycamoreIngestPlugin.class);
-    //}
 
     public void testPluginInstalled() throws IOException, ParseException {
         Response response = client().performRequest(new Request("GET", "/_cat/plugins"));
@@ -129,28 +129,6 @@ public class ArynIngestPluginIT extends OpenSearchRestTestCase {
         }
     }
 
-    @Ignore
-    @SneakyThrows
-    public void testArynIngestProcessorWithPropertyExtraction2() {
-        String pipelineName = "property_extraction2";
-        try {
-            try {
-                createPipelineProcessor(pipelineName);
-                createIndex(INDEX_NAME, pipelineName);
-                ingestDocument(TEST_DATA_ROOT + "real_estate_1.pdf");
-            } catch (Exception e) {
-                e.printStackTrace();
-                fail("Exception during test setup: " + e.getMessage());
-            }
-            List<String> expectedPassages = new ArrayList<>();
-            expectedPassages.add("Morristown Infill");
-            validateIndexIngestResults(INDEX_NAME, "property_name", expectedPassages);
-        } finally {
-            wipeOffTestResources(INDEX_NAME, pipelineName);
-        }
-    }
-
-
     /*********************************************************************************
      *   Borrowed from neural-search test fixtures
      ***********************************************************************************/
@@ -162,7 +140,6 @@ public class ArynIngestPluginIT extends OpenSearchRestTestCase {
         String requestBody = Files.readString(Path.of(pipelineURLPath.toURI()));
         String arynApiKey = System.getenv("ARYN_TOKEN");
         requestBody = requestBody.replaceAll("__ARYN_TOKEN__", arynApiKey);
-        requestBody = requestBody.replaceAll("__SCHEMA_PATH__", classLoader.getResource(SCHEMA_PATH).toURI().toString());
         createPipelineProcessor(requestBody, pipelineName, "", null);
     }
 

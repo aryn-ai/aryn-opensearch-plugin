@@ -1,0 +1,13 @@
+This is an example Dockerfile that installs the Aryn OpenSearch plugin built for OpenSearch 3.4.0.
+
+If your user ID (uid) and group ID (gid) are different from 1000, edit the file to change the last line to:
+
+USER <uid>:<gid>
+
+where uid and gid match the user under which you will be running the Docker container.
+
+You can then build an image like this:
+
+>> docker build -t aryn-opensearch .
+
+And then use the docker run command from https://docs.opensearch.org/latest/install-and-configure/install-opensearch/docker/ to bring up the container.

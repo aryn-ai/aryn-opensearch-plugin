@@ -50,7 +50,7 @@ public class ArynIngestProcessorFactoryTests extends OpenSearchTestCase {
         config.put("threshold", threshold);
         ArynIngestProcessorFactory factory = new ArynIngestProcessorFactory();
         ArynIngestProcessor processor = (ArynIngestProcessor) factory.create(Collections.emptyMap(), "tag", "desc", config);
-        byte[] actual = processor.buildOptionJson("0.01", "auto", "standard", false, false, null, null);
+        byte[] actual = processor.buildOptionJson("0.01", "auto", "standard", false, false, null);
         String fileContent = new String(actual);
         Gson gson = new GsonBuilder().create();
         JsonObject json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();

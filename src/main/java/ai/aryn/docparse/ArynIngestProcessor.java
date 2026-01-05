@@ -60,7 +60,8 @@ public class ArynIngestProcessor extends AbstractProcessor {
     private final String textMode;
     private final String tableMode;
     private final String schema;
-    private final String schemaPath;
+    //private final String schemaPath;
+    private final String arynUrl;
 
     final HttpBearerAuth HTTPBearer;
     final PartitionApi api;
@@ -71,7 +72,7 @@ public class ArynIngestProcessor extends AbstractProcessor {
                                   String inputField, String outputField,
                                   String apiKey, boolean ignoreMissing, String threshold,
                                   boolean extractImages, boolean summarizeImages, String textMode, String tableMode,
-                                  String schema, String schemaPath) {
+                                  String schema, String arynUrl) {
         super(tag, description);
         this.inputField = inputField;
         this.outputField = outputField;
@@ -82,9 +83,10 @@ public class ArynIngestProcessor extends AbstractProcessor {
         this.textMode = textMode;
         this.tableMode = tableMode;
         this.schema = schema;
-        this.schemaPath = schemaPath;
+        //this.schemaPath = schemaPath;
+        this.arynUrl = arynUrl;
 
-        defaultClient.setBasePath("https://api.aryn.ai");
+        defaultClient.setBasePath(arynUrl);
         // Configure HTTP bearer authorization: HTTPBearer
         HTTPBearer = (HttpBearerAuth) defaultClient.getAuthentication("HTTPBearer");
         HTTPBearer.setBearerToken(apiKey);
@@ -115,8 +117,7 @@ public class ArynIngestProcessor extends AbstractProcessor {
                     this.tableMode,
                     this.extractImages,
                     this.summarizeImages,
-                    this.schema,
-                    this.schemaPath);
+                    this.schema);
             PartitionerResponse res = partition(inputFile, options);
             if (res == null) {
                 return ingestDocument;
@@ -126,13 +127,11 @@ public class ArynIngestProcessor extends AbstractProcessor {
                 String text = joinAllTextRepresentations(elements);
                 ingestDocument.setFieldValue(this.outputField, text);
             }
-            Object properties = res.getProperties();
-            if (properties != null) {
-                Map<String, ?> propsMap = gson.fromJson(gson.toJson(properties), Map.class);
-                for (Map.Entry<String, ?> entry : propsMap.entrySet()) {
-                    log.debug("Property: {} = {}", entry.getKey(), entry.getValue());
-                    ingestDocument.appendFieldValue(entry.getKey(), entry.getValue());
-                }
+            Map<String, ?> properties = (Map<String, ?>) res.getProperties();
+            Map<String, ?> propsMap = gson.fromJson(gson.toJson(properties), Map.class);
+            for (Map.Entry<String, ?> entry : propsMap.entrySet()) {
+                log.debug("Property: {} = {}", entry.getKey(), entry.getValue());
+                ingestDocument.appendFieldValue(entry.getKey(), entry.getValue());
             }
         } catch (IOException e) {
             log.error("Unable to process document: {}", e, e);
@@ -151,6 +150,12 @@ public class ArynIngestProcessor extends AbstractProcessor {
                 String arynCallId = responseHeaders.get(ARYN_CALL_ID).get(0);
                 String arynVersion = responseHeaders.get(ARYN_API_VERSION).get(0);
                 log.info("aryn_call_id: {}, aryn_version: {}", arynCallId, arynVersion);
+
+                Object properties = response.getProperties();
+                if (properties != null) {
+                    Map<String, ?> propsMap = gson.fromJson(gson.toJson(properties), Map.class);
+                    response.setProperties(propsMap);
+                }
                 return response;
             } catch (ApiException e) {
                 // TODO add retries
@@ -169,8 +174,7 @@ public class ArynIngestProcessor extends AbstractProcessor {
             String tableMode,
             boolean extractImages,
             boolean summarizeImages,
-            String schemaStr,
-            String schemaFilePath) {
+            String schema) {
         Map<String, Object> optionsMap = new HashMap<>();
         if (threshold.equals("auto")) {
             optionsMap.put("threshold", "auto");
@@ -186,32 +190,16 @@ public class ArynIngestProcessor extends AbstractProcessor {
         optionsMap.put("extract_images", extractImages);
         optionsMap.put("summarize_images", summarizeImages);
         ObjectMapper objectMapper = new ObjectMapper();
-        String schema = schemaStr;
         try {
-            if (schema == null && schemaFilePath != null) {
-                schema = getSchemaAsString(schemaFilePath);
-            }
             if (schema != null) {
                 optionsMap.put("property_extraction_options", Map.of("schema", schema));
             }
             String optionsJson = objectMapper.writeValueAsString(optionsMap);
-            return optionsJson.getBytes(StandardCharsets.UTF_8); // tempFile.toFile();
+            return optionsJson.getBytes(StandardCharsets.UTF_8);
         } catch (IOException ex) {
             log.error(ex.getMessage(), ex);
             throw new RuntimeException(ex);
         }
-    }
-
-    String getSchemaAsString(String filePath) throws IOException {
-        try (Reader reader = new FileReader(filePath)) {
-            // Use JsonParser.parseReader to get a JsonElement
-            // Then cast it to a JsonObject
-            JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
-            return jsonObject.toString();
-        } catch (Exception e) {
-            log.error(e, e);
-        }
-        return null;
     }
 
     private String joinAllTextRepresentations(List<Element> elements) {

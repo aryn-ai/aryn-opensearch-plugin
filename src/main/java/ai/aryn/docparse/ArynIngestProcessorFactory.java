@@ -40,10 +40,11 @@ public class ArynIngestProcessorFactory implements Processor.Factory {
         String tableMode = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "table_mode");
         boolean summarizeImages = readBooleanProperty(ArynIngestProcessor.TYPE, tag, config, "summarize_images", false);
         String schema = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "schema");
-        String schemaPath = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "schema_path");
+        //String schemaPath = readOptionalStringProperty(ArynIngestProcessor.TYPE, tag, config, "schema_path");
+        String arynUrl = readStringProperty(ArynIngestProcessor.TYPE, tag, config, "aryn_url", "https://api.aryn.ai");
 
         return new ArynIngestProcessor(tag, description, inputField, outputtField, apiKey, ignoreMissing,
-                threshold, extractImages, summarizeImages, textMode, tableMode, schema, schemaPath);
+                threshold, extractImages, summarizeImages, textMode, tableMode, schema, arynUrl);
     }
 
     static String readStringOrDoubleProperty(String processorType, String processorTag, Map<String, Object> configuration, String propertyName, String defaultValue) {

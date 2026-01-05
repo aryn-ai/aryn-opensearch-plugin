@@ -40,7 +40,7 @@ public class ArynIngestProcessorTests extends OpenSearchTestCase {
         ArynIngestProcessor processor = new ArynIngestProcessor("tag", "desc", "input",
                 "output", "apiKey", false, threshold, false,
                 false, "auto", "standard", null, null);
-        byte[] actual = processor.buildOptionJson(threshold, "auto", "standard", false, false, null, null);
+        byte[] actual = processor.buildOptionJson(threshold, "auto", "standard", false, false, null);
         String fileContent = new String(actual);
         Gson gson = new GsonBuilder().create();
         JsonObject json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();
@@ -50,7 +50,7 @@ public class ArynIngestProcessorTests extends OpenSearchTestCase {
         processor = new ArynIngestProcessor("tag", "desc", "input",
                 "output", "apiKey", false, threshold, false,
                 false, "auto", "standard", null, null);
-        actual = processor.buildOptionJson(threshold, "auto", "standard", false, false, null, null);
+        actual = processor.buildOptionJson(threshold, "auto", "standard", false, false, null);
         fileContent = new String(actual);
         gson = new GsonBuilder().create();
         json = gson.fromJson(fileContent, JsonElement.class).getAsJsonObject();

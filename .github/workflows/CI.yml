@@ -1,4 +1,4 @@
-name: Build and Test Sycamore Ingest Plugin
+name: Build and Test Aryn OpenSearch Plugin
 
 on:
   push:

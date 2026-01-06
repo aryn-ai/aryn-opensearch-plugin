@@ -1,0 +1,804 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Aryn OpenSearch Plugin Tutorial</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="2dce241b-f7cd-8044-9070-f793bb9d20b6" class="page sans"><header><h1 class="page-title" dir="auto">Aryn OpenSearch Plugin Tutorial</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-808a-8e9b-c716bb0d8456" class="">Introduction</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8092-9b0a-f6b0d7a5f017" class="">In this tutorial, we will show you how to use the Aryn OpenSearch plugin in an ingest pipeline (<a href="https://docs.opensearch.org/latest/ingest-pipelines/">https://docs.opensearch.org/latest/ingest-pipelines/</a>) to extract text and properties from PDF files.  The tutorial assumes that you already have some working knowledge of OpenSearch and/or you are a current user of OpenSearch.  Therefore, we will not cover the basics such as installing and setting up an OpenSearch cluster in this tutorial.  However, if you are processing unstructured documents such as PDFs or Microsoft Word documents outside OpenSearch and ingesting the extracted contents as JSON documents into your OpenSearch cluster, this tutorial shows you how you can accomplish that using an ingest pipeline and the Aryn OpenSearch plugin. </p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80f8-942e-e7dff141a85d" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8027-a48a-c75fca18ca8b" class="">For this tutorial, we will use a public dataset to demonstrate the usefulness of the plugin.  We will set up an ingest pipeline and ingest an incident report from the National Transportation Safety Board (NTSB).  The ingestion process will involve extracting both text from the PDF as well as two properties - “incident date” and “incident location”.  We will then run a query that makes use of the extracted properties.    </p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-804c-8938-cdccb31c5214" class="">Step 0 - Set up an OpenSearch cluster</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8024-ae2f-da8934165fbf" class="">If you want a completely isolated demo environment in which to try out this tutorial and you do not want to use one of your existing OpenSearch clusters, we recommend that you use this Docker installation to get something up and running quickly - <a href="https://docs.opensearch.org/latest/install-and-configure/install-opensearch/docker/">https://docs.opensearch.org/latest/install-and-configure/install-opensearch/docker/</a>.</p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-805f-8287-e35238478411" class="">Step 1 - Install the plugin</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80f4-a98a-c1a367ee3b1c" class="">Download the plugin zip file from the plugin repository here - <a href="https://github.com/aryn-ai/aryn-opensearch-plugin">https://github.com/aryn-ai/aryn-opensearch-plugin</a></p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8054-a24b-e19bff3bf96b" class="">Make sure to grab a release that matches the version of the OpenSearch distribution that you intend to use for this tutorial, e.g. 3.4.0, 2.9.2.</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80d6-9831-dca7b782432f" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80e3-a0f2-c2a27681d9dc" class="">The official instructions for installing a plugin can be found here - <a href="https://opensearch.org/docs/latest/install-and-configure/plugins/">https://opensearch.org/docs/latest/install-and-configure/plugins/</a>. </p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8021-9640-e277e791ee32" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-802d-b24e-e515983b862e" class="">If you are using Docker to follow along, we recommend that you use a simple setup with just one node.  Any new plugin that needs to be installed on an OpenSearch cluster (if it’s not already included in the distribution), needs to be installed on every node.  And once the plugin is installed, every node needs to be restarted for the plugin to take effect.  Docker is no exception, but you can shorten the time it takes to install and get going with the tutorial if you just have one node.</p></div><div style="display:contents" dir="auto"><p id="2dfe241b-f7cd-801a-9b8f-fbc077384705" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dfe241b-f7cd-8035-b4e3-e1ebb014188c" class="">You can also use the Dockerfile in the plugin repo (<a href="https://github.com/aryn-ai/aryn-opensearch-plugin/tree/main/docker">https://github.com/aryn-ai/aryn-opensearch-plugin/tree/main/docker</a>) which handles installation of the plugin.</p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-805d-9bf4-e86aeecd51cf" class="">Step 2 - Create an ingest pipeline definition</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80af-8383-d4b37b60d2d8" class="">Save the following pipeline definition into a file called “aryn_ingest_pipeline.json”.</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-8072-b046-e584f93bcfa2" class="code code-wrap"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">{  
+	&quot;description&quot;: &quot;test&quot;,  
+	&quot;processors&quot;: [    
+		{      
+			&quot;aryn_ingest&quot;: {        
+				&quot;input_field&quot;: &quot;data&quot;,        
+				&quot;output_field&quot;: &quot;extracted&quot;,        
+				&quot;aryn_api_key&quot;: &quot;&lt;Aryn API key&gt;&quot;,        
+				&quot;ignore_missing&quot;: true,        
+				&quot;threshold&quot;: &quot;auto&quot;,        
+				&quot;extract_images&quot;: true,        
+				&quot;text_mode&quot;: &quot;auto&quot;,        
+				&quot;table_mode&quot;: &quot;standard&quot;,        
+				&quot;schema&quot;: &quot;{\&quot;properties\&quot;: [{\&quot;name\&quot;: \&quot;incident_date\&quot;, \&quot;type\&quot;: {\&quot;type\&quot;: \&quot;date\&quot;}}, {\&quot;name\&quot;: \&quot;incident_location\&quot;, \&quot;type\&quot;: {\&quot;type\&quot;: \&quot;string\&quot;}}]}&quot;      
+			}    
+		}  
+	]
+}</code></pre></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8094-9f01-e5af1d553e5e" class="">The above pipeline definition tells OpenSearch to look for the PDF binary data in a document field called “data”.  The plugin will send this data to Aryn to perform text and property extraction.  The extracted text will be placed in an output field designed by the “output_field” field in the pipeline definition which in this case is “extracted”.  If you specify a schema which we are, Aryn will also perform property extraction using the provided schema.  In this case, we are using a schema that consists of two properties - “incident_date” (which is a Date property) and “incident_location” (which is a String property).  It may help to see what the report looks like to understand how this schema maps to the information contained in the PDF document:</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8023-aa56-e2766b2cae7e" class="">
+</p></div><div style="display:contents" dir="ltr"><figure id="2dce241b-f7cd-802f-9025-f8e704eec5f7" class="image"><a href="Aryn%20OpenSearch%20Plugin%20Tutorial/image.png"><img style="width:709.984375px" src="Aryn%20OpenSearch%20Plugin%20Tutorial/image.png"/></a></figure></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80c7-9eaf-fc39f00f7bc1" class="">The schema used in the pipeline definition is just a string representation of the following JSON representation of the same schema:</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80e9-a62e-c56b3eb3349d" class="">
+</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-803e-9f07-cf5967514cff" class="code code-wrap"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">{
+	&quot;properties&quot;: [
+		{
+			&quot;name&quot;: &quot;incident_date&quot;,
+			&quot;type&quot;: {
+				&quot;type&quot;: &quot;date&quot;
+			}
+		},
+		{
+			&quot;name&quot;: &quot;incident_location&quot;,
+			&quot;type&quot;: {
+				&quot;type&quot;: &quot;string&quot;
+			}
+		}
+	]
+}</code></pre></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-800e-9134-e30ac3ba978f" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8066-ad17-ce8e24a8e80a" class="">You can obtain an Aryn API key by going to <a href="https://aryn.ai/signup">https://aryn.ai/signup</a>.  It is free to sign up and get started.</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8070-b2b4-fa4bdb4ec94a" class="">For the purpose of this tutorial, you can use the parsing and extraction options as presented above, but if you would like to learn more about these options, you can refer to our documentation at <a href="https://docs.aryn.ai/docparse/processing_options">https://docs.aryn.ai/docparse/processing_options</a>.</p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-80a5-8f6c-ed5693a45550" class="">Step 3 - Create an ingest pipeline</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-803d-bfb0-cc0cf6cb1ac2" class="">Assuming you have your OpenSearch cluster running locally, you can execute the following cURL command in a terminal to create an ingest pipeline called “aryn_ingest” with just one ingestion processor which is the Aryn ingest processor.</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8027-8a5b-d6e7b698ccb0" class="">
+</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-8039-94c1-e9732ee6c7c5" class="code code-wrap"><code class="language-Bash" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; curl -X PUT localhost:9200/_ingest/pipeline/aryn_ingest --data &#x27;@aryn_ingest_pipeline.json&#x27; -H &quot;Content-Type:application/json&quot;</code></pre></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-8033-9af9-fe806d9d051d" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dde241b-f7cd-8016-a3f1-c6b0b56fc054" class="">If you installed a new OpenSearch cluster (using one of the installation methods recommended by OpenSearch) with an admin password, you may need to execute the following command instead.</p></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-8019-ae3b-ee05751542fd" class="">
+</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dee241b-f7cd-8034-a07a-e352a79bab9c" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; curl -ku &#x27;admin:&lt;admin password&gt;&#x27; -X PUT https://localhost:9200/_ingest/pipeline/aryn_ingest --data &#x27;@aryn_ingest_pipeline.json&#x27; -H &quot;Content-Type:application/json&quot;</code></pre></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-8052-a8ee-f1dc051b5b22" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dde241b-f7cd-8058-bbbe-c5d9d97ee3c2" class="">If you are trying this in a multi-user (shared) OpenSearch cluster and you do not want the Aryn API key exposed to others, make sure to lock down access to the above pipeline definition.  You can refer to the official documentation on access control - <a href="https://docs.opensearch.org/latest/security/access-control/permissions/">https://docs.opensearch.org/latest/security/access-control/permissions/</a>.</p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-807f-aaa7-f16a89ca73a6" class="">Step 4 - Download a report</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80be-b7ff-e9c59a8e095a" class="">If you have the AWS CLI installed, you can download the file we will use for this tutorial like this:</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-805c-8f5c-f789b817348d" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; aws s3 cp s3://aryn-public/ntsb/0.pdf ntsb0.pdf </code></pre></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80e3-8a7d-efaea34eddfd" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-800d-8f29-c8aefd61dab9" class="">Or use any AWS S3 client to get that file.</p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-80b8-bfe3-d3b1155f4813" class="">Step 5 - Ingest the downloaded file</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-8042-b79f-c7253b2a9037" class="">You can run the following two commands to ingest the downloaded file into a test index called “example-index”.</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-8019-a13f-cc7dd36b31d6" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; file_data=$(base64 -w 0 ntsb0.pdf)
+&gt;&gt; curl -X PUT -H &quot;Content-type:application/json&quot; --data &#x27;{&quot;data&quot;,&quot;$file_data&quot;}&#x27; localhost:9200/example-index/_doc/1?pipeline=aryn_ingest</code></pre></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-8024-9cb5-d28931c646cc" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-80f8-9bc5-db373c1c5f37" class="">However, for a lot of PDF files, the file size is too big to pass to the cURL command as shown above.  Here is a script that will facilitate loading of large PDF contents as binary:</p></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-8027-aa3e-fae53f89194c" class="">
+</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dee241b-f7cd-8041-9a10-d25a2f73dcd4" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">#!/usr/bin/env sh
+
+attached_file=&quot;$1&quot;
+index_name=&quot;$2&quot;
+doc_id=&quot;$3&quot;
+pipeline_name=&quot;$4&quot;
+
+# Use https if you have an admin password set
+HOST=&quot;localhost:9200&quot;
+
+# Pipe the base64 encoded content of attached_file
+base64 --wrap=0 &quot;$attached_file&quot; |
+# into jq to make it a proper JSON string within the
+# JSON data structure
+jq --slurp --raw-input --arg FileName &quot;$attached_file&quot; \
+&#x27;{
+   &quot;data&quot;: . 
+}
+&#x27; |
+# Get the resultant JSON piped into curl
+# that will read the data from the standard input
+# using -d @-
+curl -X POST -d @- \
+   $HOST&#x27;/&#x27;$index_name&#x27;/_doc/&#x27;$doc_id?pipeline=$pipeline_name  \
+   -H &#x27;content-type: application/json&#x27;</code></pre></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-809d-bb92-dfdb21eebc46" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-800a-9cd8-de67a1264e3f" class="">You can then ingest the downloaded file like this:</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dee241b-f7cd-8014-a443-caa2d02ba496" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; ./ingest.sh ntsb0.pdf example-index 1 aryn_ingest</code></pre></div><div style="display:contents" dir="auto"><p id="2dee241b-f7cd-800e-a7d4-eb9cd551b267" class="">
+</p></div><div style="display:contents" dir="auto"><h3 id="2dce241b-f7cd-805f-8109-d169a58fe7a2" class="">Step 6 - Run a search query</h3></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-800b-b99c-e5920450da44" class="">Here is an example query for any documents with text matching “pilot”.</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-8003-989f-fd61786714d0" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; curl -X POST -H &quot;Content-type:application/json&quot; localhost:9200/example-index/_search
+{
+	&quot;_source&quot;: {&quot;excludes&quot;: [&quot;data&quot;]},
+	&quot;query&quot;: {
+		&quot;match&quot;: {
+			&quot;extracted&quot;: &quot;pilot&quot;
+		}
+	}
+}</code></pre></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-80a6-a3e9-c8fc11f4338f" class="">
+</p></div><div style="display:contents" dir="auto"><p id="2dce241b-f7cd-807b-82c3-d3447727291e" class="">You can also run queries to match on extracted properties.</p></div><div style="display:contents" dir="auto"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="2dce241b-f7cd-8094-b120-f358d40b1b1c" class="code code-wrap"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">&gt;&gt; curl -X POST -H &quot;Content-type:application/json&quot; localhost:9200/example-index/_search
+{
+	&quot;_source&quot;: {&quot;excludes&quot;: [&quot;data&quot;]},
+	&quot;query&quot;: {
+		&quot;match&quot;: {
+			&quot;incident_location&quot;: &quot;Florida&quot;
+		}
+	}
+}</code></pre></div><div style="display:contents" dir="auto"><p id="2dfe241b-f7cd-806d-807f-fdc95364def6" class="">
+</p></div></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
